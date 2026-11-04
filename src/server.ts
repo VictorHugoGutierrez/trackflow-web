@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +9,7 @@ import { authMiddleware } from "./middlewares/auth.middleware.js";
 import { authRoutes } from "./routes/auth.routes.js";
 import { dashboardRoutes } from "./routes/dashboard.routes.js";
 import { controlPlaneRoutes } from "./routes/control-plane.routes.js";
+import { teamRoutes } from "./routes/team.routes.js";
 
 dotenv.config();
 
@@ -16,8 +18,12 @@ const __dirname = path.dirname(__filename);
 
 export const app = express();
 
+const viewsDir = fs.existsSync(path.join(__dirname, "views"))
+  ? path.join(__dirname, "views")
+  : path.join(process.cwd(), "src", "views");
+
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set("views", viewsDir);
 
 app.use(cookieParser());
 app.use(express.json());
@@ -32,6 +38,7 @@ app.get("/ping", (_req, res) => {
 
 app.use(authRoutes);
 app.use(dashboardRoutes);
+app.use(teamRoutes);
 app.use(controlPlaneRoutes);
 
 app.use((_req, res) => {

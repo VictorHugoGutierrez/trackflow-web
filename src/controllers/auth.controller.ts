@@ -13,6 +13,25 @@ export class AuthController {
     });
   }
 
+  static setSession(req: Request, res: Response) {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ success: false, message: "Token não fornecido." });
+    }
+
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res.cookie("trackflow_session", token, {
+      path: "/",
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({ success: true });
+  }
+
   static handleLogout(req: Request, res: Response) {
     res.clearCookie("trackflow_session", { path: "/" });
     return res.redirect("/");

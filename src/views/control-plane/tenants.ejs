@@ -1,0 +1,760 @@
+<%- include('../partials/head') %>
+
+<div class="flex min-h-screen bg-[#080C14] text-slate-100">
+  <%- include('partials/sidebar', { activeTab: 'tenants' }) %>
+
+  <div class="flex-1 flex flex-col min-w-0">
+    <%- include('partials/header', { breadcrumb: 'Gestão de Tenants' }) %>
+
+    <main class="flex-1 p-8 space-y-6 max-w-7xl w-full mx-auto overflow-y-auto">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">Gestão de Empresas (Tenants)</h1>
+          <p class="text-xs text-slate-400 mt-1">
+            Supervisão e governança de todos os workspaces, planos e status de acesso
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 self-start">
+          <button
+            type="button"
+            onclick="openCreateTenantModal()"
+            class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 transition-colors shadow-sm cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Novo Tenant & Owner
+          </button>
+
+          <button
+            type="button"
+            onclick="fetchTenants()"
+            class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 transition-colors shadow-sm cursor-pointer"
+          >
+            <svg id="refresh-tenants-icon" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Recarregar
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-[#0E1526] border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row items-stretch md:items-center gap-4 text-xs shadow-sm">
+        <div class="flex-1 relative">
+          <input
+            type="text"
+            id="filter-search"
+            oninput="debounceSearch()"
+            placeholder="Buscar por nome da empresa..."
+            class="w-full pl-9 pr-4 py-2 bg-[#080C14] border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors"
+          />
+          <svg class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">Plano:</span>
+            <select
+              id="filter-plan"
+              onchange="fetchTenants(1)"
+              class="bg-[#080C14] border border-slate-800 text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 cursor-pointer"
+            >
+              <option value="">Todos</option>
+              <option value="freemium">Freemium</option>
+              <option value="pro">Pro</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">Status:</span>
+            <select
+              id="filter-active"
+              onchange="fetchTenants(1)"
+              class="bg-[#080C14] border border-slate-800 text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 cursor-pointer"
+            >
+              <option value="">Todos</option>
+              <option value="true">Ativos</option>
+              <option value="false">Suspensos</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-[#0E1526] border border-slate-800/80 rounded-2xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#080C14] border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
+              <tr>
+                <th class="px-6 py-3.5">Empresa / Tenant</th>
+                <th class="px-6 py-3.5">Owner Responsável</th>
+                <th class="px-6 py-3.5">Plano</th>
+                <th class="px-6 py-3.5">Status</th>
+                <th class="px-6 py-3.5">Métricas</th>
+                <th class="px-6 py-3.5">Criação</th>
+                <th class="px-6 py-3.5 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tenants-table-body" class="divide-y divide-slate-800/60">
+              <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-slate-400">
+                  Carregando lista de tenants...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="px-6 py-3.5 bg-[#080C14] border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <div id="pagination-info">Mostrando 0 de 0 registros</div>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              id="btn-prev-page"
+              onclick="changePage(-1)"
+              disabled
+              class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              &larr; Anterior
+            </button>
+            <span id="pagination-pages" class="font-medium text-slate-300">Página 1</span>
+            <button
+              type="button"
+              id="btn-next-page"
+              onclick="changePage(1)"
+              disabled
+              class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Próxima &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="modal-details" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-[#0E1526] border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-6 shadow-2xl">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <h3 class="text-base font-bold text-white" id="modal-tenant-name">Detalhes do Tenant</h3>
+      <button type="button" onclick="closeDetailsModal()" class="text-slate-400 hover:text-white p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div id="modal-details-content" class="space-y-4 text-xs text-slate-300">
+      <div class="text-center py-4 text-slate-400">Carregando dados...</div>
+    </div>
+
+    <div class="flex justify-end pt-3 border-t border-slate-800">
+      <button type="button" onclick="closeDetailsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-plan" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-[#0E1526] border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <h3 class="text-base font-bold text-white">Alterar Plano do Tenant</h3>
+      <button type="button" onclick="closePlanModal()" class="text-slate-400 hover:text-white p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="space-y-3 text-xs">
+      <p class="text-slate-400">Selecione o novo plano comercial para a empresa <strong id="modal-plan-tenant-name" class="text-white"></strong>:</p>
+      <input type="hidden" id="modal-plan-tenant-id" />
+      <div class="space-y-2">
+        <label class="flex items-center gap-3 p-3 bg-[#080C14] border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700">
+          <input type="radio" name="plan-option" value="freemium" class="text-emerald-500 focus:ring-0">
+          <div>
+            <div class="font-semibold text-white">Freemium</div>
+            <div class="text-[11px] text-slate-400">Plano gratuito básico (R$ 0/mês)</div>
+          </div>
+        </label>
+        <label class="flex items-center gap-3 p-3 bg-[#080C14] border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700">
+          <input type="radio" name="plan-option" value="pro" class="text-emerald-500 focus:ring-0">
+          <div>
+            <div class="font-semibold text-emerald-400">Pro</div>
+            <div class="text-[11px] text-slate-400">Recursos avançados e relatórios (R$ 99/mês)</div>
+          </div>
+        </label>
+        <label class="flex items-center gap-3 p-3 bg-[#080C14] border border-slate-800 rounded-xl cursor-pointer hover:border-slate-700">
+          <input type="radio" name="plan-option" value="enterprise" class="text-emerald-500 focus:ring-0">
+          <div>
+            <div class="font-semibold text-purple-400">Enterprise</div>
+            <div class="text-[11px] text-slate-400">Múltiplos workspaces e suporte dedicado</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+      <button type="button" onclick="closePlanModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">
+        Cancelar
+      </button>
+      <button type="button" id="btn-save-plan" onclick="submitPlanChange()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-semibold">
+        Salvar Alteração
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-delete" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-[#0E1526] border border-red-900/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+    <div class="flex items-center gap-3 text-red-400">
+      <div class="p-2 bg-red-500/10 rounded-xl border border-red-500/20">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-white">Exclusão em Cascata</h3>
+        <p class="text-xs text-red-400">Ação irreversível de alto impacto</p>
+      </div>
+    </div>
+
+    <div class="text-xs text-slate-300 space-y-2">
+      <p>Você está prestes a excluir permanentemente a empresa <strong id="modal-delete-tenant-name" class="text-white"></strong>.</p>
+      <p class="text-slate-400 text-[11px]">Todos os usuários vinculados, projetos, faturas, relatórios de IA e lançamentos de tempo serão permanentemente apagados do banco de dados.</p>
+      <input type="hidden" id="modal-delete-tenant-id" />
+    </div>
+
+    <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+      <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">
+        Cancelar
+      </button>
+      <button type="button" id="btn-confirm-delete" onclick="submitDeleteTenant()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold">
+        Confirmar Exclusão
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Novo Tenant & Owner -->
+<div id="modal-create-tenant" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-[#0E1526] border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 text-xs shadow-2xl">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Cadastrar Novo Tenant & Owner</h3>
+          <p class="text-[11px] text-slate-400">Cria a organização B2B e o primeiro usuário administrador</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onclick="closeCreateTenantModal()"
+        class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 cursor-pointer"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div id="modal-create-feedback" class="hidden p-3 rounded-xl border text-xs"></div>
+
+    <form id="form-create-tenant" onsubmit="submitCreateTenant(event)" class="space-y-4">
+      <div class="space-y-3 p-3.5 bg-[#080C14] rounded-xl border border-slate-800/80">
+        <div class="text-[11px] font-semibold text-amber-400 uppercase tracking-wider">1. Dados da Organização (Workspace)</div>
+        
+        <div class="space-y-1">
+          <label for="create-tenant-name" class="block text-slate-300 font-medium">Nome da Empresa / Workspace</label>
+          <input
+            type="text"
+            id="create-tenant-name"
+            required
+            placeholder="Ex: TechCorp Soluções Ltda"
+            class="w-full px-3 py-2 bg-[#0E1526] border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label for="create-tenant-plan" class="block text-slate-300 font-medium">Plano Inicial de Assinatura</label>
+          <select
+            id="create-tenant-plan"
+            class="w-full px-3 py-2 bg-[#0E1526] border border-slate-700/80 rounded-xl text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+          >
+            <option value="freemium">Freemium (Gratuito)</option>
+            <option value="pro">Pro (Profissional)</option>
+            <option value="enterprise">Enterprise (Corporativo)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="space-y-3 p-3.5 bg-[#080C14] rounded-xl border border-slate-800/80">
+        <div class="text-[11px] font-semibold text-blue-400 uppercase tracking-wider">2. Administrador Responsável (Owner)</div>
+
+        <div class="space-y-1">
+          <label for="create-owner-name" class="block text-slate-300 font-medium">Nome Completo do Owner</label>
+          <input
+            type="text"
+            id="create-owner-name"
+            required
+            placeholder="Ex: Carlos Eduardo Silva"
+            class="w-full px-3 py-2 bg-[#0E1526] border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label for="create-owner-email" class="block text-slate-300 font-medium">E-mail Corporativo</label>
+          <input
+            type="email"
+            id="create-owner-email"
+            required
+            placeholder="Ex: carlos@techcorp.com"
+            class="w-full px-3 py-2 bg-[#0E1526] border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label for="create-owner-password" class="block text-slate-300 font-medium">Senha Temporária / Inicial (mínimo 6 caracteres)</label>
+          <input
+            type="password"
+            id="create-owner-password"
+            required
+            minlength="6"
+            placeholder="••••••••"
+            class="w-full px-3 py-2 bg-[#0E1526] border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-800">
+        <button
+          type="button"
+          onclick="closeCreateTenantModal()"
+          class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          id="btn-submit-create-tenant"
+          class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold transition-colors cursor-pointer"
+        >
+          Criar Tenant & Owner
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const API_URL = "<%= typeof apiUrl !== 'undefined' ? apiUrl : 'http://localhost:3333' %>";
+  let currentPage = 1;
+  let totalPages = 1;
+  let searchTimeout = null;
+
+  function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      fetchTenants(1);
+    }, 350);
+  }
+
+  function changePage(delta) {
+    const newPage = currentPage + delta;
+    if (newPage >= 1 && newPage <= totalPages) {
+      fetchTenants(newPage);
+    }
+  }
+
+  async function fetchTenants(page = currentPage) {
+    const icon = document.getElementById("refresh-tenants-icon");
+    if (icon) icon.classList.add("animate-spin");
+
+    const search = document.getElementById("filter-search").value.trim();
+    const plan = document.getElementById("filter-plan").value;
+    const active = document.getElementById("filter-active").value;
+
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: "10"
+    });
+    if (search) params.append("search", search);
+    if (plan) params.append("plan", plan);
+    if (active) params.append("active", active);
+
+    try {
+      const res = await fetch(`${API_URL}/api/admin/tenants?${params.toString()}`, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" }
+      });
+
+      if (!res.ok) throw new Error("Falha ao obter lista de tenants");
+      const result = await res.json();
+      const list = result.data || [];
+      const meta = result.meta || { page: 1, limit: 10, total: 0, totalPages: 1 };
+
+      currentPage = meta.page;
+      totalPages = meta.totalPages || 1;
+
+      renderTenantsTable(list);
+      updatePagination(meta);
+    } catch (err) {
+      console.error(err);
+      document.getElementById("tenants-table-body").innerHTML = `
+        <tr><td colspan="7" class="px-6 py-6 text-center text-red-400">Erro ao carregar tenants da API.</td></tr>
+      `;
+    } finally {
+      if (icon) icon.classList.remove("animate-spin");
+    }
+  }
+
+  function renderTenantsTable(list) {
+    const tbody = document.getElementById("tenants-table-body");
+    if (!tbody) return;
+
+    if (!list.length) {
+      tbody.innerHTML = `
+        <tr><td colspan="7" class="px-6 py-8 text-center text-slate-400">Nenhum tenant encontrado com os filtros aplicados.</td></tr>
+      `;
+      return;
+    }
+
+    const planBadge = {
+      freemium: '<span class="px-2 py-0.5 rounded-full font-semibold bg-slate-800 text-slate-300 border border-slate-700">Freemium</span>',
+      pro: '<span class="px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Pro</span>',
+      enterprise: '<span class="px-2 py-0.5 rounded-full font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">Enterprise</span>'
+    };
+
+    tbody.innerHTML = list.map(t => {
+      const count = t._count || {};
+      const owner = t.owner || { name: 'Sem Owner', email: '-' };
+      const createdDate = new Date(t.createdAt).toLocaleDateString('pt-BR');
+      const badge = planBadge[t.plan] || `<span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">${t.plan}</span>`;
+      const statusBadge = t.active
+        ? '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Ativo</span>'
+        : '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Suspenso</span>';
+
+      return `
+        <tr class="hover:bg-slate-800/30 transition-colors">
+          <td class="px-6 py-4 font-semibold text-white">
+            <div class="flex items-center gap-2">
+              <span>${t.name}</span>
+            </div>
+            <div class="text-[10px] text-slate-400 font-mono font-normal">${t.id}</div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="text-slate-200 font-medium">${owner.name}</div>
+            <div class="text-slate-400 text-[11px]">${owner.email}</div>
+          </td>
+          <td class="px-6 py-4">${badge}</td>
+          <td class="px-6 py-4">${statusBadge}</td>
+          <td class="px-6 py-4 text-slate-300">
+            <div class="flex items-center gap-3 text-[11px] font-mono">
+              <span title="Usuários">👥 ${count.users ?? 0}</span>
+              <span title="Projetos">📁 ${count.projects ?? 0}</span>
+              <span title="Clientes">🤝 ${count.clients ?? 0}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 text-slate-400">${createdDate}</td>
+          <td class="px-6 py-4 text-right">
+            <div class="inline-flex items-center gap-1.5">
+              <button
+                type="button"
+                onclick="openDetailsModal('${t.id}')"
+                class="px-2.5 py-1 text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg transition-colors"
+                title="Ver detalhes completos"
+              >
+                Detalhes
+              </button>
+              <button
+                type="button"
+                onclick="openPlanModal('${t.id}', '${escapeHtml(t.name)}', '${t.plan}')"
+                class="px-2.5 py-1 text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg transition-colors"
+                title="Mudar plano comercial"
+              >
+                Plano
+              </button>
+              <button
+                type="button"
+                onclick="toggleTenantStatus('${t.id}', ${!t.active})"
+                class="px-2.5 py-1 ${t.active ? 'text-amber-400 hover:text-amber-300 bg-amber-500/10 border-amber-500/20' : 'text-blue-400 hover:text-blue-300 bg-blue-500/10 border-blue-500/20'} border rounded-lg transition-colors"
+                title="${t.active ? 'Suspender acesso' : 'Reativar acesso'}"
+              >
+                ${t.active ? 'Suspender' : 'Reativar'}
+              </button>
+              <button
+                type="button"
+                onclick="openDeleteModal('${t.id}', '${escapeHtml(t.name)}')"
+                class="px-2 py-1 text-red-400 hover:text-red-300 hover:bg-red-950/40 border border-transparent hover:border-red-900/50 rounded-lg transition-colors"
+                title="Excluir empresa"
+              >
+                &times;
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function updatePagination(meta) {
+    const total = meta.total || 0;
+    const page = meta.page || 1;
+    const limit = meta.limit || 10;
+    const from = total > 0 ? (page - 1) * limit + 1 : 0;
+    const to = Math.min(page * limit, total);
+
+    document.getElementById("pagination-info").textContent = `Mostrando ${from}-${to} de ${total} registros`;
+    document.getElementById("pagination-pages").textContent = `Página ${page} de ${totalPages}`;
+    document.getElementById("btn-prev-page").disabled = page <= 1;
+    document.getElementById("btn-next-page").disabled = page >= totalPages;
+  }
+
+  async function openDetailsModal(id) {
+    const modal = document.getElementById("modal-details");
+    const content = document.getElementById("modal-details-content");
+    content.innerHTML = '<div class="text-center py-4 text-slate-400">Carregando dados do tenant...</div>';
+    modal.classList.remove("hidden");
+
+    try {
+      const res = await fetch(`${API_URL}/api/admin/tenants/${id}`, {
+        credentials: "include"
+      });
+      if (!res.ok) throw new Error("Erro ao carregar detalhes");
+      const result = await res.json();
+      const t = result.data || {};
+      const owner = t.owner || {};
+      const users = t.users || [];
+      const count = t._count || {};
+
+      document.getElementById("modal-tenant-name").textContent = t.name;
+
+      content.innerHTML = `
+        <div class="grid grid-cols-2 gap-3 p-3 bg-[#080C14] rounded-xl border border-slate-800">
+          <div><span class="text-slate-400 block">Plano:</span> <span class="font-semibold text-white uppercase">${t.plan}</span></div>
+          <div><span class="text-slate-400 block">Status:</span> <span class="${t.active ? 'text-emerald-400' : 'text-amber-400'} font-semibold">${t.active ? 'Ativo' : 'Suspenso'}</span></div>
+          <div><span class="text-slate-400 block">Owner:</span> <span class="text-white">${owner.name || '-'}</span> (${owner.email || '-'})</div>
+          <div><span class="text-slate-400 block">Criado em:</span> <span class="text-slate-300">${new Date(t.createdAt).toLocaleString('pt-BR')}</span></div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div class="p-2.5 bg-[#080C14] rounded-xl border border-slate-800">
+            <div class="text-lg font-bold text-white">${count.users ?? 0}</div>
+            <div class="text-[10px] text-slate-400">Usuários</div>
+          </div>
+          <div class="p-2.5 bg-[#080C14] rounded-xl border border-slate-800">
+            <div class="text-lg font-bold text-white">${count.projects ?? 0}</div>
+            <div class="text-[10px] text-slate-400">Projetos</div>
+          </div>
+          <div class="p-2.5 bg-[#080C14] rounded-xl border border-slate-800">
+            <div class="text-lg font-bold text-white">${count.clients ?? 0}</div>
+            <div class="text-[10px] text-slate-400">Clientes</div>
+          </div>
+          <div class="p-2.5 bg-[#080C14] rounded-xl border border-slate-800">
+            <div class="text-lg font-bold text-white">${count.timeEntries ?? 0}</div>
+            <div class="text-[10px] text-slate-400">Registros</div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-white mb-2">Membros do Workspace (${users.length})</h4>
+          <div class="max-h-36 overflow-y-auto space-y-1 divide-y divide-slate-800/40">
+            ${users.map(u => `
+              <div class="flex items-center justify-between py-1.5 text-xs">
+                <div>
+                  <span class="font-medium text-slate-200">${u.name}</span>
+                  <span class="text-slate-400 text-[11px] block">${u.email}</span>
+                </div>
+                <span class="px-2 py-0.5 text-[10px] rounded-full bg-slate-800 text-slate-300 font-mono">${u.role}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      content.innerHTML = '<div class="text-center py-4 text-red-400">Falha ao obter detalhes.</div>';
+    }
+  }
+
+  function closeDetailsModal() {
+    document.getElementById("modal-details").classList.add("hidden");
+  }
+
+  function openPlanModal(id, name, currentPlan) {
+    document.getElementById("modal-plan-tenant-id").value = id;
+    document.getElementById("modal-plan-tenant-name").textContent = name;
+    const radios = document.getElementsByName("plan-option");
+    for (const r of radios) {
+      r.checked = r.value === currentPlan;
+    }
+    document.getElementById("modal-plan").classList.remove("hidden");
+  }
+
+  function closePlanModal() {
+    document.getElementById("modal-plan").classList.add("hidden");
+  }
+
+  async function submitPlanChange() {
+    const id = document.getElementById("modal-plan-tenant-id").value;
+    const btn = document.getElementById("btn-save-plan");
+    let selectedPlan = "pro";
+    const radios = document.getElementsByName("plan-option");
+    for (const r of radios) {
+      if (r.checked) selectedPlan = r.value;
+    }
+
+    btn.textContent = "Salvando...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API_URL}/api/admin/tenants/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ plan: selectedPlan })
+      });
+      if (!res.ok) throw new Error("Erro ao atualizar plano");
+      closePlanModal();
+      fetchTenants();
+    } catch (err) {
+      alert("Falha ao atualizar plano.");
+    } finally {
+      btn.textContent = "Salvar Alteração";
+      btn.disabled = false;
+    }
+  }
+
+  async function toggleTenantStatus(id, newStatus) {
+    const action = newStatus ? "reativar" : "suspender";
+    if (!confirm(`Deseja realmente ${action} o acesso desta empresa?`)) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/admin/tenants/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ active: newStatus })
+      });
+      if (!res.ok) throw new Error("Erro ao alterar status");
+      fetchTenants();
+    } catch (err) {
+      alert("Falha ao alterar status do tenant.");
+    }
+  }
+
+  function openDeleteModal(id, name) {
+    document.getElementById("modal-delete-tenant-id").value = id;
+    document.getElementById("modal-delete-tenant-name").textContent = name;
+    document.getElementById("modal-delete").classList.remove("hidden");
+  }
+
+  function closeDeleteModal() {
+    document.getElementById("modal-delete").classList.add("hidden");
+  }
+
+  async function submitDeleteTenant() {
+    const id = document.getElementById("modal-delete-tenant-id").value;
+    const btn = document.getElementById("btn-confirm-delete");
+
+    btn.textContent = "Excluindo...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API_URL}/api/admin/tenants/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      if (!res.ok) throw new Error("Erro ao excluir tenant");
+      closeDeleteModal();
+      fetchTenants();
+    } catch (err) {
+      alert("Falha ao excluir tenant.");
+    } finally {
+      btn.textContent = "Confirmar Exclusão";
+      btn.disabled = false;
+    }
+  }
+
+  function openCreateTenantModal() {
+    const feedback = document.getElementById("modal-create-feedback");
+    feedback.className = "hidden p-3 rounded-xl border text-xs";
+    feedback.textContent = "";
+    document.getElementById("form-create-tenant").reset();
+    document.getElementById("modal-create-tenant").classList.remove("hidden");
+  }
+
+  function closeCreateTenantModal() {
+    document.getElementById("modal-create-tenant").classList.add("hidden");
+  }
+
+  async function submitCreateTenant(event) {
+    event.preventDefault();
+    const feedback = document.getElementById("modal-create-feedback");
+    const btn = document.getElementById("btn-submit-create-tenant");
+    const originalText = btn.textContent;
+
+    const workspaceName = document.getElementById("create-tenant-name").value.trim();
+    const plan = document.getElementById("create-tenant-plan").value;
+    const name = document.getElementById("create-owner-name").value.trim();
+    const email = document.getElementById("create-owner-email").value.trim();
+    const password = document.getElementById("create-owner-password").value;
+
+    feedback.className = "hidden p-3 rounded-xl border text-xs";
+    feedback.textContent = "";
+    btn.textContent = "Criando...";
+    btn.disabled = true;
+
+    try {
+      // 1. Criar Owner e Workspace na API
+      const res = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, workspaceName }),
+      });
+
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error?.message || result.message || "Falha ao criar tenant e owner.");
+      }
+
+      const createdTenant = result.data?.tenant;
+
+      // 2. Se o plano for pro ou enterprise, atualiza o plano via API administrativa
+      if (plan && plan !== "freemium" && createdTenant?.id) {
+        const token = localStorage.getItem("trackflow_token");
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        await fetch(`${API_URL}/api/admin/tenants/${createdTenant.id}`, {
+          method: "PATCH",
+          headers,
+          credentials: "include",
+          body: JSON.stringify({ plan }),
+        });
+      }
+
+      feedback.className = "p-3 rounded-xl border text-xs bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+      feedback.textContent = "Tenant e Owner cadastrados com sucesso!";
+
+      setTimeout(() => {
+        closeCreateTenantModal();
+        fetchTenants(1);
+      }, 700);
+    } catch (err) {
+      feedback.className = "p-3 rounded-xl border text-xs bg-red-500/10 border-red-500/20 text-red-400";
+      feedback.textContent = err.message;
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  }
+
+  function escapeHtml(str) {
+    return (str || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+
+  document.addEventListener("DOMContentLoaded", () => fetchTenants(1));
+</script>
+
+</body>
+</html>

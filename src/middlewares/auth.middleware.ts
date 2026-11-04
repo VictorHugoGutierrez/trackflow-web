@@ -5,6 +5,7 @@ import type { JWTPayload, UserRole } from "../types/auth.js";
 const PROTECTED_PREFIXES = [
   "/dashboard",
   "/control-plane",
+  "/team",
   "/clients",
   "/projects",
   "/reports",
@@ -34,16 +35,17 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
 
     const role = payload.role as UserRole;
 
-    if (pathname.startsWith("/control-plane") && role !== "SUPER_ADMIN") {
-      return res.redirect("/dashboard");
-    }
-
     if (
-      isProtectedRoute &&
+      role === "SUPER_ADMIN" &&
       !pathname.startsWith("/control-plane") &&
-      role === "SUPER_ADMIN"
+      pathname !== "/logout" &&
+      pathname !== "/session"
     ) {
       return res.redirect("/control-plane");
+    }
+
+    if (pathname.startsWith("/control-plane") && role !== "SUPER_ADMIN") {
+      return res.redirect("/dashboard");
     }
 
     if (pathname === "/") {

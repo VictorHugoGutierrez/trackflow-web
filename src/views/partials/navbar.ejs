@@ -9,17 +9,30 @@
       </div>
       <div>
         <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">TrackFlow</span>
-        <% if (typeof user !== 'undefined' && user && user.role === 'SUPER_ADMIN') { %>
-          <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
-            Control Plane
-          </span>
-        <% } else if (typeof user !== 'undefined' && user) { %>
-          <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
+        <% if (typeof user !== 'undefined' && user) { %>
+          <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
             <%= user.role %>
           </span>
         <% } %>
       </div>
     </div>
+
+    <% if (typeof user !== 'undefined' && user) { %>
+      <nav class="hidden md:flex items-center gap-1 text-xs font-medium">
+        <a
+          href="/dashboard"
+          class="px-3 py-1.5 rounded-lg transition-colors <%= typeof pageTitle !== 'undefined' && pageTitle.includes('Painel') ? 'bg-slate-100 dark:bg-slate-800 text-emerald-500 dark:text-emerald-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' %>"
+        >
+          Cronômetro & Tarefas
+        </a>
+        <a
+          href="/team"
+          class="px-3 py-1.5 rounded-lg transition-colors <%= typeof pageTitle !== 'undefined' && pageTitle.includes('Equipe') ? 'bg-slate-100 dark:bg-slate-800 text-emerald-500 dark:text-emerald-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' %>"
+        >
+          Gestão de Equipe
+        </a>
+      </nav>
+    <% } %>
 
     <div class="flex items-center gap-3">
       <button

@@ -1,0 +1,496 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<%
+  function esc(str) {
+    return (str || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+%>
+
+<main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 space-y-6">
+  <!-- Feedback Messages -->
+  <% if (typeof success !== 'undefined' && success) { %>
+    <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span><%= success %></span>
+      </div>
+      <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+    </div>
+  <% } %>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="p-4 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke-width="2"/>
+          <line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/>
+          <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/>
+        </svg>
+        <span><%= error %></span>
+      </div>
+      <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+    </div>
+  <% } %>
+
+  <div id="js-feedback" class="hidden p-4 text-xs rounded-xl border flex items-center justify-between shadow-sm"></div>
+
+  <!-- Header Section -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Gestão da Equipe</h1>
+        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+          <%= members ? members.length : 0 %> <%= members && members.length === 1 ? 'membro' : 'membros' %>
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        Controle de colaboradores, permissões de acesso e taxas horárias de prestação de serviços
+      </p>
+    </div>
+
+    <% if (typeof user !== 'undefined' && user && (user.role === 'OWNER' || user.role === 'MANAGER' || user.role === 'SUPER_ADMIN')) { %>
+      <button
+        type="button"
+        onclick="openAddModal()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-colors cursor-pointer self-start"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Convidar / Adicionar Membro
+      </button>
+    <% } %>
+  </div>
+
+  <!-- Quick Stats Cards -->
+  <%
+    const totalMembers = members ? members.length : 0;
+    const managersCount = members ? members.filter(m => m.role === 'OWNER' || m.role === 'MANAGER').length : 0;
+    const standardMembersCount = members ? members.filter(m => m.role === 'MEMBER').length : 0;
+    const sumRates = members ? members.reduce((acc, m) => acc + (Number(m.hourlyRate) || 0), 0) : 0;
+    const avgRate = totalMembers > 0 ? (sumRates / totalMembers).toFixed(2) : "0.00";
+  %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total no Workspace</div>
+      <div class="text-2xl font-bold text-slate-900 dark:text-white"><%= totalMembers %></div>
+      <div class="text-[11px] text-slate-400">Pessoas com acesso ativo</div>
+    </div>
+
+    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Gestores (Owner / Manager)</div>
+      <div class="text-2xl font-bold text-blue-600 dark:text-blue-400"><%= managersCount %></div>
+      <div class="text-[11px] text-slate-400">Administram equipes e projetos</div>
+    </div>
+
+    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Colaboradores (Membros)</div>
+      <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400"><%= standardMembersCount %></div>
+      <div class="text-[11px] text-slate-400">Rastreiam tempo em tarefas</div>
+    </div>
+
+    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Valor Médio da Hora</div>
+      <div class="text-2xl font-bold text-slate-900 dark:text-white">R$ <%= avgRate %></div>
+      <div class="text-[11px] text-slate-400">Taxa média da equipe</div>
+    </div>
+  </div>
+
+  <!-- Members Table -->
+  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-50 dark:bg-[#0F172A] border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+          <tr>
+            <th class="px-6 py-3.5">Membro</th>
+            <th class="px-6 py-3.5">E-mail</th>
+            <th class="px-6 py-3.5">Papel / Acesso</th>
+            <th class="px-6 py-3.5">Valor da Hora</th>
+            <th class="px-6 py-3.5">Membro Desde</th>
+            <th class="px-6 py-3.5 text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+          <% if (!members || members.length === 0) { %>
+            <tr>
+              <td colspan="6" class="px-6 py-8 text-center text-slate-400">
+                Nenhum membro encontrado neste workspace.
+              </td>
+            </tr>
+          <% } else { %>
+            <% members.forEach(function(member) { %>
+              <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-xs uppercase">
+                      <%= member.name ? member.name.substring(0, 2) : 'TF' %>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span><%= member.name %></span>
+                        <% if (typeof user !== 'undefined' && user && member.id === user.sub) { %>
+                          <span class="text-[10px] font-medium px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Você</span>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                  <%= member.email %>
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% if (member.role === 'OWNER') { %>
+                    <span class="px-2.5 py-1 text-[10px] font-bold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      PROPRIETÁRIO
+                    </span>
+                  <% } else if (member.role === 'MANAGER') { %>
+                    <span class="px-2.5 py-1 text-[10px] font-bold rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                      GESTOR
+                    </span>
+                  <% } else { %>
+                    <span class="px-2.5 py-1 text-[10px] font-bold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      COLABORADOR
+                    </span>
+                  <% } %>
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap font-mono font-semibold text-slate-800 dark:text-slate-200">
+                  R$ <%= Number(member.hourlyRate || 0).toFixed(2) %>/h
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap text-slate-500 dark:text-slate-400 text-[11px]">
+                  <%= new Date(member.createdAt).toLocaleDateString('pt-BR') %>
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <% if (typeof user !== 'undefined' && user && (user.role === 'OWNER' || user.role === 'MANAGER' || user.role === 'SUPER_ADMIN')) { %>
+                      <button
+                        type="button"
+                        onclick="openEditModal('<%= member.id %>', '<%= esc(member.name) %>', '<%= member.role %>', '<%= member.hourlyRate || 0 %>')"
+                        class="px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+                        title="Editar membro"
+                      >
+                        Editar
+                      </button>
+
+                      <% if (member.role !== 'OWNER' && (!user || member.id !== user.sub)) { %>
+                        <button
+                          type="button"
+                          onclick="openDeleteModal('<%= member.id %>', '<%= esc(member.name) %>')"
+                          class="px-2.5 py-1 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-900/50 cursor-pointer"
+                          title="Remover do workspace"
+                        >
+                          Remover
+                        </button>
+                      <% } %>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<% if (typeof user !== 'undefined' && user && (user.role === 'OWNER' || user.role === 'MANAGER' || user.role === 'SUPER_ADMIN')) { %>
+<!-- Modal Convidar / Adicionar Membro -->
+<div id="modal-add-member" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 text-xs shadow-2xl">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">Convidar Novo Membro</h3>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Adicione um novo colaborador ao workspace</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg">
+        &times;
+      </button>
+    </div>
+
+    <form method="POST" action="/team" id="form-add-member" onsubmit="handleAddSubmit(event)" class="space-y-4">
+      <div class="space-y-1">
+        <label for="add-name" class="block text-slate-700 dark:text-slate-300 font-medium">Nome Completo</label>
+        <input
+          type="text"
+          id="add-name"
+          name="name"
+          required
+          placeholder="Ex: Mariana Costa"
+          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div class="space-y-1">
+        <label for="add-email" class="block text-slate-700 dark:text-slate-300 font-medium">E-mail Corporativo</label>
+        <input
+          type="email"
+          id="add-email"
+          name="email"
+          required
+          placeholder="Ex: mariana@empresa.com"
+          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div class="space-y-1">
+        <label for="add-password" class="block text-slate-700 dark:text-slate-300 font-medium">Senha Inicial (mínimo 6 caracteres)</label>
+        <input
+          type="password"
+          id="add-password"
+          name="password"
+          required
+          minlength="6"
+          placeholder="••••••••"
+          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1">
+          <label for="add-role" class="block text-slate-700 dark:text-slate-300 font-medium">Papel / Nível</label>
+          <select
+            id="add-role"
+            name="role"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+          >
+            <option value="MEMBER">Colaborador (Member)</option>
+            <option value="MANAGER">Gestor (Manager)</option>
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label for="add-rate" class="block text-slate-700 dark:text-slate-300 font-medium">Valor Hora (R$)</label>
+          <input
+            type="number"
+            step="0.50"
+            min="0"
+            id="add-rate"
+            name="hourlyRate"
+            placeholder="0.00"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+        <button
+          type="button"
+          onclick="closeAddModal()"
+          class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          id="btn-add-submit"
+          class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors cursor-pointer shadow-sm"
+        >
+          Convidar Membro
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Editar Membro -->
+<div id="modal-edit-member" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 text-xs shadow-2xl">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+      <div>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Editar Dados do Membro</h3>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400">Atualize o nome, papel ou taxa horária</p>
+      </div>
+      <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg">
+        &times;
+      </button>
+    </div>
+
+    <form method="POST" id="form-edit-member" onsubmit="handleEditSubmit(event)" class="space-y-4">
+      <input type="hidden" id="edit-member-id" />
+
+      <div class="space-y-1">
+        <label for="edit-name" class="block text-slate-700 dark:text-slate-300 font-medium">Nome Completo</label>
+        <input
+          type="text"
+          id="edit-name"
+          name="name"
+          required
+          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1">
+          <label for="edit-role" class="block text-slate-700 dark:text-slate-300 font-medium">Papel / Acesso</label>
+          <select
+            id="edit-role"
+            name="role"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+          >
+            <option value="MEMBER">Colaborador (Member)</option>
+            <option value="MANAGER">Gestor (Manager)</option>
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label for="edit-rate" class="block text-slate-700 dark:text-slate-300 font-medium">Valor Hora (R$)</label>
+          <input
+            type="number"
+            step="0.50"
+            min="0"
+            id="edit-rate"
+            name="hourlyRate"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+        <button
+          type="button"
+          onclick="closeEditModal()"
+          class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          id="btn-edit-submit"
+          class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors cursor-pointer shadow-sm"
+        >
+          Salvar Alterações
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Remover Membro -->
+<div id="modal-delete-member" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#1E293B] border border-red-200 dark:border-red-900/40 rounded-2xl max-w-md w-full p-6 space-y-4 text-xs shadow-2xl">
+    <div class="flex items-center gap-3 text-red-500">
+      <div class="p-2 bg-red-500/10 rounded-xl border border-red-500/20">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Remover Membro da Equipe</h3>
+        <p class="text-[11px] text-red-500">Ação de desvinculação de acesso</p>
+      </div>
+    </div>
+
+    <p class="text-slate-600 dark:text-slate-300">
+      Deseja realmente remover <strong id="delete-member-name" class="text-slate-900 dark:text-white"></strong> do workspace?
+    </p>
+    <p class="text-[11px] text-slate-400">
+      O colaborador perderá acesso imediato aos projetos e cronômetros desta empresa. Os apontamentos anteriores serão preservados no histórico.
+    </p>
+
+    <form method="POST" id="form-delete-member" onsubmit="handleDeleteSubmit(event)" class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+      <input type="hidden" id="delete-member-id" />
+      <button
+        type="button"
+        onclick="closeDeleteModal()"
+        class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition-colors cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        id="btn-delete-submit"
+        class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors cursor-pointer shadow-sm"
+      >
+        Confirmar Remoção
+      </button>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<script>
+  function openAddModal() {
+    document.getElementById("form-add-member").reset();
+    document.getElementById("modal-add-member").classList.remove("hidden");
+  }
+
+  function closeAddModal() {
+    document.getElementById("modal-add-member").classList.add("hidden");
+  }
+
+  function openEditModal(id, name, role, rate) {
+    document.getElementById("edit-member-id").value = id;
+    document.getElementById("edit-name").value = name;
+    document.getElementById("edit-rate").value = rate;
+
+    const roleSelect = document.getElementById("edit-role");
+    if (role === "OWNER") {
+      roleSelect.innerHTML = '<option value="OWNER" selected>Proprietário (Owner)</option>';
+      roleSelect.disabled = true;
+    } else {
+      roleSelect.disabled = false;
+      roleSelect.innerHTML = `
+        <option value="MEMBER" ${role === 'MEMBER' ? 'selected' : ''}>Colaborador (Member)</option>
+        <option value="MANAGER" ${role === 'MANAGER' ? 'selected' : ''}>Gestor (Manager)</option>
+      `;
+    }
+
+    document.getElementById("form-edit-member").action = `/team/${id}/update`;
+    document.getElementById("modal-edit-member").classList.remove("hidden");
+  }
+
+  function closeEditModal() {
+    document.getElementById("modal-edit-member").classList.add("hidden");
+  }
+
+  function openDeleteModal(id, name) {
+    document.getElementById("delete-member-id").value = id;
+    document.getElementById("delete-member-name").textContent = name;
+    document.getElementById("form-delete-member").action = `/team/${id}/delete`;
+    document.getElementById("modal-delete-member").classList.remove("hidden");
+  }
+
+  function closeDeleteModal() {
+    document.getElementById("modal-delete-member").classList.add("hidden");
+  }
+
+  async function handleAddSubmit(event) {
+    const btn = document.getElementById("btn-add-submit");
+    btn.textContent = "Adicionando...";
+    btn.disabled = true;
+  }
+
+  async function handleEditSubmit(event) {
+    const btn = document.getElementById("btn-edit-submit");
+    btn.textContent = "Salvando...";
+    btn.disabled = true;
+  }
+
+  async function handleDeleteSubmit(event) {
+    const btn = document.getElementById("btn-delete-submit");
+    btn.textContent = "Removendo...";
+    btn.disabled = true;
+  }
+
+  function escapeHtml(str) {
+    return (str || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<header class="h-16 border-b border-slate-800 bg-[#0B0F19]/80 backdrop-blur px-8 flex items-center justify-between shrink-0 sticky top-0 z-40">
+  <div class="flex items-center gap-3">
+    <div class="text-xs text-slate-400 flex items-center gap-2">
+      <span class="hover:text-white transition-colors">Control Plane</span>
+      <span class="text-slate-600">/</span>
+      <span class="text-amber-400 font-semibold"><%= typeof breadcrumb !== 'undefined' ? breadcrumb : 'Visão Geral' %></span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <div class="hidden sm:flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300">
+      <span class="text-slate-400">Período:</span>
+      <select id="period-selector" onchange="typeof handlePeriodChange === 'function' && handlePeriodChange(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
+        <option value="today" class="bg-slate-900 text-white">Hoje</option>
+        <option value="7d" class="bg-slate-900 text-white">Últimos 7 dias</option>
+        <option value="30d" selected class="bg-slate-900 text-white">Este Mês</option>
+        <option value="all" class="bg-slate-900 text-white">Todo o Período</option>
+      </select>
+    </div>
+
+    <button
+      type="button"
+      onclick="toggleTheme()"
+      class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+      title="Alternar tema"
+    >
+      <svg id="theme-moon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+      <svg id="theme-sun" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
+    </button>
+
+    <div class="flex items-center gap-2 pl-2 border-l border-slate-800">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Sessão Ativa"></span>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        SUPER_ADMIN
+      </span>
+    </div>
+  </div>
+</header>
