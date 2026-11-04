@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'TrackFlow' %></title>
+  
+  <script>
+    if (localStorage.getItem('trackflow-theme') === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'play-color': '#10B981',
+            'stop-color': '#EF4444',
+            dark: {
+              bg: '#0F172A',
+              card: '#1E293B',
+              text: '#F8FAFC'
+            },
+            light: {
+              bg: '#F1F5F9',
+              card: '#FFFFFF',
+              text: '#0F172A'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col bg-slate-100 text-slate-900 dark:bg-[#0F172A] dark:text-[#F8FAFC] transition-colors">
