@@ -22,9 +22,25 @@ const __dirname = path.dirname(__filename);
 
 export const app = express();
 
-const viewsDir = fs.existsSync(path.join(__dirname, "views"))
-  ? path.join(__dirname, "views")
-  : path.join(process.cwd(), "src", "views");
+function getViewsDir(): string {
+  const candidates = [
+    path.join(__dirname, "views"),
+    path.join(__dirname, "../src/views"),
+    path.join(process.cwd(), "src", "views"),
+    path.join(process.cwd(), "dist", "views"),
+    path.join(process.cwd(), "views"),
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return path.join(process.cwd(), "src", "views");
+}
+
+const viewsDir = getViewsDir();
 
 app.set("view engine", "ejs");
 app.set("views", viewsDir);

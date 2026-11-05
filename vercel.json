@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.ts"
+    }
+  ],
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "{src/views/**,dist/views/**}"
+    }
+  }
+}
