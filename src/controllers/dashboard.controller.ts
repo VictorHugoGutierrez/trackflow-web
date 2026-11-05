@@ -8,6 +8,7 @@ export interface Project {
   name: string;
   budgetHours?: number | null;
   status?: string;
+  clientId?: string | null;
 }
 
 export interface Task {
@@ -50,7 +51,7 @@ export class DashboardController {
       if (token) {
         const [resActive, resEntries, resProjects, resTasks] = await Promise.allSettled([
           axios.get(`${API_URL}/api/time-entries/active`, { headers, timeout: 2500 }),
-          axios.get(`${API_URL}/api/time-entries?limit=15`, { headers, timeout: 2500 }),
+          axios.get(`${API_URL}/api/time-entries?limit=30`, { headers, timeout: 2500 }),
           axios.get(`${API_URL}/api/projects`, { headers, timeout: 2500 }),
           axios.get(`${API_URL}/api/tasks`, { headers, timeout: 2500 }),
         ]);
@@ -97,7 +98,8 @@ export class DashboardController {
         : 100;
 
     return res.render("dashboard", {
-      pageTitle: "TrackFlow - Cronômetro & Workspace",
+      pageTitle: "TrackFlow - Painel Operacional",
+      activeTab: "dashboard",
       user: req.user,
       activeEntry,
       timeEntries,
@@ -141,7 +143,7 @@ export class DashboardController {
       if (wantsJson) {
         return res.status(201).json(response.data);
       }
-      return res.redirect("/dashboard");
+      return res.redirect("/dashboard?success=Cronômetro+iniciado+com+sucesso!");
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || "Erro ao iniciar cronômetro.";
       if (wantsJson) {
@@ -188,15 +190,123 @@ export class DashboardController {
     }
   }
 
+  static async createManualEntry(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { description, projectId, taskId, start, end, billable } = req.body;
+    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/time-entries`,
+        {
+          description: description || undefined,
+          projectId: projectId || undefined,
+          taskId: taskId || undefined,
+          start,
+          end,
+          billable: billable === "true" || billable === true || billable === "on",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Cookie: `trackflow_session=${token}`,
+          },
+          timeout: 4000,
+        }
+      );
+
+      if (wantsJson) {
+        return res.status(201).json(response.data);
+      }
+      return res.redirect("/dashboard?success=Apontamento+manual+registrado!");
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || "Erro ao registrar apontamento manual.";
+      if (wantsJson) {
+        return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
+      }
+      return res.redirect(`/dashboard?error=${encodeURIComponent(msg)}`);
+    }
+  }
+
+  static async updateTimeEntry(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { id } = req.params;
+    const { description, projectId, taskId, start, end, billable } = req.body;
+    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    try {
+      const response = await axios.patch(
+        `${API_URL}/api/time-entries/${id}`,
+        {
+          description: description !== undefined ? description : undefined,
+          projectId: projectId || null,
+          taskId: taskId || null,
+          start: start || undefined,
+          end: end || undefined,
+          billable: billable !== undefined ? (billable === "true" || billable === true || billable === "on") : undefined,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Cookie: `trackflow_session=${token}`,
+          },
+          timeout: 4000,
+        }
+      );
+
+      if (wantsJson) {
+        return res.status(200).json(response.data);
+      }
+      return res.redirect("/dashboard?success=Apontamento+atualizado+com+sucesso!");
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || "Erro ao atualizar apontamento.";
+      if (wantsJson) {
+        return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
+      }
+      return res.redirect(`/dashboard?error=${encodeURIComponent(msg)}`);
+    }
+  }
+
+  static async deleteTimeEntry(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { id } = req.params;
+    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    try {
+      await axios.delete(`${API_URL}/api/time-entries/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Cookie: `trackflow_session=${token}`,
+        },
+        timeout: 4000,
+      });
+
+      if (wantsJson) {
+        return res.status(200).json({ success: true });
+      }
+      return res.redirect("/dashboard?success=Apontamento+excluído+com+sucesso!");
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || "Erro ao excluir apontamento.";
+      if (wantsJson) {
+        return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
+      }
+      return res.redirect(`/dashboard?error=${encodeURIComponent(msg)}`);
+    }
+  }
+
   static async createProject(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
-    const { name, budgetHours } = req.body;
+    const { name, budgetHours, clientId } = req.body;
     const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
 
     try {
       const response = await axios.post(
         `${API_URL}/api/projects`,
-        { name, budgetHours: budgetHours ? Number(budgetHours) : undefined },
+        {
+          name,
+          budgetHours: budgetHours ? Number(budgetHours) : undefined,
+          clientId: clientId || undefined,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,

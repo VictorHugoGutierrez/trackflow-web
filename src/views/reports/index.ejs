@@ -1,0 +1,503 @@
+<%- include('../partials/head') %>
+
+<%
+  function esc(str) {
+    return (str || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+%>
+
+<div class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100">
+  <%- include('../partials/tenant-sidebar', { activeTab: 'reports' }) %>
+
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    <%- include('../partials/tenant-header') %>
+
+    <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+      <!-- Feedback Messages -->
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span><%= success %></span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+        </div>
+      <% } %>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="p-4 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/>
+              <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/>
+            </svg>
+            <span><%= error %></span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+        </div>
+      <% } %>
+
+      <!-- Top Section: Header & Filters -->
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+            <span>Relatórios & Faturamento</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Apuração mensal de horas faturáveis, resumos automáticos com IA (Ollama) e emissão de faturas
+          </p>
+        </div>
+
+        <!-- Filter Form -->
+        <form method="GET" action="/reports" class="flex flex-wrap items-center gap-2.5">
+          <div>
+            <input
+              type="month"
+              name="month"
+              value="<%= selectedMonth %>"
+              class="px-3 py-1.5 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
+            />
+          </div>
+
+          <div>
+            <select
+              name="clientId"
+              class="px-3 py-1.5 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              <option value="">Todos os clientes</option>
+              <% if (clients && clients.length > 0) { %>
+                <% clients.forEach(function(c) { %>
+                  <option value="<%= c.id %>" <%= selectedClientId === c.id ? 'selected' : '' %>>
+                    <%= c.name %>
+                  </option>
+                <% }); %>
+              <% } %>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold transition-colors border border-slate-200 dark:border-slate-700"
+          >
+            Filtrar
+          </button>
+        </form>
+      </div>
+
+      <!-- Hero Card: Painel de Cálculo Financeiro -->
+      <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100 dark:border-slate-800/80">
+          <!-- Calculation Equation Display -->
+          <div class="space-y-1">
+            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Cálculo Financeiro do Período</span>
+            <div class="flex flex-wrap items-baseline gap-2 text-slate-900 dark:text-white">
+              <span class="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
+                <%= currency === 'BRL' ? 'R$' : (currency === 'USD' ? '$' : '€') %> <%= totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+              </span>
+              <span class="text-xs text-slate-400 font-mono">
+                (<%= totalBillableHours %>h faturáveis &times; <%= currency === 'BRL' ? 'R$' : '$' %> <%= hourlyRate.toFixed(2) %>/h)
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Total apurado com base em <%= timeEntries.length %> apontamentos registrados no mês de <%= selectedMonth %>
+            </p>
+          </div>
+
+          <!-- Actions: IA Summary & Create Invoice -->
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Botão Gerar Resumo com IA -->
+            <button
+              type="button"
+              id="btn-ai-summary"
+              onclick="triggerAiSummary()"
+              class="px-4 py-2.5 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 transition-all flex items-center gap-2 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95"
+            >
+              <svg id="ai-icon" class="w-4 h-4 text-purple-500 animate-spin hidden" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span id="ai-btn-text">✨ Gerar Resumo com IA (Ollama)</span>
+            </button>
+
+            <!-- Botão Emitir Fatura -->
+            <button
+              type="button"
+              onclick="openInvoiceModal()"
+              class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-emerald-500/20 hover:scale-[1.02] active:scale-95"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span>Gerar e Enviar Fatura</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Summary Live Preview Card (se gerado) -->
+        <div id="ai-summary-card" class="mt-4 p-4 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs hidden">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-purple-500/10">
+            <span class="font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+              <span>🤖 Resumo Executivo Gerado pela IA (gemma4)</span>
+            </span>
+            <button type="button" onclick="document.getElementById('ai-summary-card').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">&times;</button>
+          </div>
+          <div id="ai-summary-content" class="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap font-sans"></div>
+        </div>
+      </div>
+
+      <!-- Table 1: Detalhamento de Horas no Período -->
+      <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Detalhamento de Atividades do Período</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sessões de tempo filtradas para conferência de faturamento</p>
+          </div>
+          <div class="text-xs font-mono text-slate-500 dark:text-slate-400">
+            Total: <strong><%= totalHours %>h</strong> (Faturável: <strong><%= totalBillableHours %>h</strong>)
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-[#1E293B]/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+              <tr>
+                <th class="px-4 py-3">Data</th>
+                <th class="px-4 py-3">Projeto / Cliente</th>
+                <th class="px-4 py-3">Tarefa</th>
+                <th class="px-4 py-3">Descrição da Atividade</th>
+                <th class="px-4 py-3">Duração</th>
+                <th class="px-4 py-3">Faturável</th>
+                <th class="px-4 py-3 text-right">Valor Estimado</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <% if (!timeEntries || timeEntries.length === 0) { %>
+                <tr>
+                  <td colspan="7" class="px-4 py-10 text-center text-slate-400">
+                    Nenhum apontamento encontrado para os filtros selecionados.
+                  </td>
+                </tr>
+              <% } else { %>
+                <% timeEntries.forEach(function(entry) { %>
+                  <%
+                    const durHours = entry.duration ? Number((entry.duration / 3600).toFixed(2)) : 0;
+                    const dateFormatted = entry.start ? new Date(entry.start).toLocaleDateString('pt-BR') : '-';
+                    const estimatedVal = entry.billable ? Number((durHours * hourlyRate).toFixed(2)) : 0;
+                  %>
+                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                      <%= dateFormatted %>
+                    </td>
+                    <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">
+                      <% if (entry.project) { %>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          <%= entry.project.name %>
+                        </span>
+                      <% } else { %>
+                        <span class="text-slate-400">-</span>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3 text-slate-600 dark:text-slate-400">
+                      <%= entry.task ? entry.task.title : '-' %>
+                    </td>
+                    <td class="px-4 py-3 text-slate-700 dark:text-slate-300">
+                      <%= entry.description || '(Sem descrição)' %>
+                    </td>
+                    <td class="px-4 py-3 font-mono font-semibold text-slate-800 dark:text-slate-200">
+                      <%= durHours %>h
+                    </td>
+                    <td class="px-4 py-3">
+                      <% if (entry.billable) { %>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Sim</span>
+                      <% } else { %>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">Não</span>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3 text-right font-mono font-semibold text-slate-900 dark:text-white">
+                      <%= currency === 'BRL' ? 'R$' : '$' %> <%= estimatedVal.toFixed(2) %>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Table 2: Histórico de Faturas Emitidas -->
+      <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Histórico de Faturas Emitidas</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Acompanhamento de status de faturamento e recebíveis B2B</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-[#1E293B]/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+              <tr>
+                <th class="px-4 py-3">Cliente</th>
+                <th class="px-4 py-3">Mês / Ref</th>
+                <th class="px-4 py-3">Horas</th>
+                <th class="px-4 py-3">Valor Total</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Data Emissão</th>
+                <th class="px-4 py-3 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <% if (!invoices || invoices.length === 0) { %>
+                <tr>
+                  <td colspan="7" class="px-4 py-10 text-center text-slate-400">
+                    Nenhuma fatura emitida ainda. Clique em <strong>Gerar e Enviar Fatura</strong> acima para faturar seu primeiro cliente.
+                  </td>
+                </tr>
+              <% } else { %>
+                <% invoices.forEach(function(inv) { %>
+                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                    <td class="px-4 py-3.5 font-bold text-slate-900 dark:text-white">
+                      <%= inv.client ? inv.client.name : 'Cliente' %>
+                    </td>
+                    <td class="px-4 py-3.5 font-mono text-slate-600 dark:text-slate-300">
+                      <%= inv.monthRef %>
+                    </td>
+                    <td class="px-4 py-3.5 font-mono">
+                      <%= inv.totalHours %>h
+                    </td>
+                    <td class="px-4 py-3.5 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      <%= currency === 'BRL' ? 'R$' : '$' %> <%= Number(inv.totalValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) %>
+                    </td>
+                    <td class="px-4 py-3.5">
+                      <% if (inv.status === 'pago') { %>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          Pago
+                        </span>
+                      <% } else if (inv.status === 'cancelado') { %>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+                          Cancelado
+                        </span>
+                      <% } else { %>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                          Pendente
+                        </span>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3.5 text-slate-400 font-mono text-[11px]">
+                      <%= new Date(inv.createdAt).toLocaleDateString('pt-BR') %>
+                    </td>
+                    <td class="px-4 py-3.5 text-right space-x-1">
+                      <% if (inv.aiSummary) { %>
+                        <button
+                          type="button"
+                          onclick="viewAiSummary('<%= esc(inv.aiSummary) %>')"
+                          class="px-2 py-1 text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-colors border border-purple-500/20"
+                          title="Ver Resumo IA"
+                        >
+                          Ver Resumo
+                        </button>
+                      <% } %>
+
+                      <% if (inv.status === 'pendente') { %>
+                        <button
+                          type="button"
+                          onclick="markInvoicePaid('<%= inv.id %>')"
+                          class="px-2.5 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors border border-emerald-500/20"
+                        >
+                          Marcar como Pago
+                        </button>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL: Gerar e Enviar Fatura -->
+<div id="modal-invoice" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Gerar Fatura do Período</h3>
+      </div>
+      <button type="button" onclick="closeInvoiceModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form action="/reports/invoices" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cliente Faturável</label>
+        <select
+          name="clientId"
+          id="invoice-client-select"
+          required
+          class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="">Selecione um cliente...</option>
+          <% if (clients && clients.length > 0) { %>
+            <% clients.forEach(function(c) { %>
+              <option value="<%= c.id %>" <%= selectedClientId === c.id ? 'selected' : '' %>>
+                <%= c.name %>
+              </option>
+            <% }); %>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Mês de Referência</label>
+          <input
+            type="text"
+            name="monthRef"
+            value="<%= selectedMonth %>"
+            required
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 font-mono"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Total de Horas</label>
+          <input
+            type="number"
+            step="0.01"
+            name="totalHours"
+            value="<%= totalBillableHours %>"
+            required
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 font-mono"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor Total (R$)</label>
+        <input
+          type="number"
+          step="0.01"
+          name="totalValue"
+          value="<%= totalValue %>"
+          required
+          class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 font-mono font-bold"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Resumo Executivo (IA / Discriminação)</label>
+        <textarea
+          name="aiSummary"
+          id="invoice-ai-summary"
+          rows="4"
+          placeholder="O resumo executivo gerado pela IA aparecerá aqui..."
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 font-sans"
+        ></textarea>
+      </div>
+
+      <div class="p-3 bg-slate-50 dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" name="sendEmail" value="true" class="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500" />
+          <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Disparar e-mail com a fatura para o cliente (Resend)</span>
+        </label>
+        <input
+          type="email"
+          name="recipientEmail"
+          placeholder="E-mail de cobrança do destinatário"
+          class="w-full px-3 py-1.5 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white"
+        />
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeInvoiceModal()" class="px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">Confirmar e Emitir Fatura</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Form para Marcar como Pago -->
+<form id="form-mark-paid" method="POST" class="hidden">
+  <input type="hidden" name="status" value="pago" />
+</form>
+
+<script>
+  function openInvoiceModal() {
+    document.getElementById('modal-invoice').classList.remove('hidden');
+  }
+  function closeInvoiceModal() {
+    document.getElementById('modal-invoice').classList.add('hidden');
+  }
+
+  function markInvoicePaid(id) {
+    if (confirm('Deseja marcar esta fatura como paga?')) {
+      const form = document.getElementById('form-mark-paid');
+      form.action = `/reports/invoices/${id}/status`;
+      form.submit();
+    }
+  }
+
+  function viewAiSummary(summaryText) {
+    alert(summaryText);
+  }
+
+  async function triggerAiSummary() {
+    const clientSelect = document.querySelector('select[name="clientId"]');
+    const clientId = clientSelect ? clientSelect.value : '';
+
+    if (!clientId) {
+      alert('Selecione um cliente no filtro acima para gerar o resumo executivo com IA.');
+      return;
+    }
+
+    const btn = document.getElementById('btn-ai-summary');
+    const icon = document.getElementById('ai-icon');
+    const btnText = document.getElementById('ai-btn-text');
+
+    btn.disabled = true;
+    icon.classList.remove('hidden');
+    btnText.textContent = 'Processando com Ollama...';
+
+    try {
+      const res = await fetch('/reports/ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId,
+          monthRef: '<%= selectedMonth %>'
+        })
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        const summary = json.data.summary || json.data;
+        document.getElementById('ai-summary-content').textContent = summary;
+        document.getElementById('ai-summary-card').classList.remove('hidden');
+        document.getElementById('invoice-ai-summary').value = summary;
+      } else {
+        alert(json.error?.message || 'Não foi possível gerar o resumo com IA.');
+      }
+    } catch (e) {
+      alert('Falha na comunicação com o serviço de IA.');
+    } finally {
+      btn.disabled = false;
+      icon.classList.add('hidden');
+      btnText.textContent = '✨ Gerar Resumo com IA (Ollama)';
+    }
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeInvoiceModal();
+    }
+  });
+</script>

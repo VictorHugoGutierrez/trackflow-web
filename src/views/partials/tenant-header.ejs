@@ -1,0 +1,330 @@
+<!-- Fixed Top Header with Immortal Timer -->
+<header class="w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur sticky top-0 z-20">
+  <div class="px-4 lg:px-6 h-16 flex items-center justify-between gap-3">
+    
+    <!-- Left: Mobile Menu Toggle & Workspace Breadcrumb -->
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        onclick="toggleMobileSidebar()"
+        class="md:hidden p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        title="Abrir Menu"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+
+      <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <span class="font-semibold text-slate-900 dark:text-white">Workspace</span>
+        <span>/</span>
+        <span class="text-emerald-600 dark:text-emerald-400 font-medium">
+          <%= typeof pageTitle !== 'undefined' ? pageTitle.replace('TrackFlow - ', '') : 'Dashboard' %>
+        </span>
+      </div>
+    </div>
+
+    <!-- Center: The Immortal Zero-Friction Timer -->
+    <div class="flex items-center gap-2 flex-1 max-w-2xl mx-auto justify-center">
+      <!-- Quick Description Input -->
+      <div class="relative flex-1 max-w-xs hidden md:block">
+        <input
+          type="text"
+          id="global-timer-desc"
+          placeholder="No que você está trabalhando?"
+          class="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-normal"
+        />
+      </div>
+
+      <!-- Quick Project Select -->
+      <div class="hidden lg:block">
+        <select
+          id="global-timer-project"
+          class="px-2.5 py-1.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 max-w-[140px] truncate"
+        >
+          <option value="">Sem projeto</option>
+          <% if (typeof projects !== 'undefined' && projects && projects.length > 0) { %>
+            <% projects.forEach(function(p) { %>
+              <option value="<%= p.id %>"><%= p.name %></option>
+            <% }); %>
+          <% } %>
+        </select>
+      </div>
+
+      <!-- Pomodoro Selector Toggle -->
+      <button
+        type="button"
+        id="global-pomodoro-toggle"
+        onclick="togglePomodoroMode()"
+        class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 bg-slate-50 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300 transition-colors"
+        title="Alternar Modo Pomodoro (25m foco / 5m intervalo)"
+      >
+        <span id="pomodoro-icon" class="text-sm">⏱️</span>
+        <span id="pomodoro-label" class="hidden xl:inline">Normal</span>
+      </button>
+
+      <!-- Digital Clock Display -->
+      <div class="px-3 py-1 bg-slate-100 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center min-w-[90px] shadow-inner">
+        <span id="global-timer-clock" class="text-sm md:text-base font-bold font-mono text-slate-900 dark:text-white tracking-widest">
+          00:00:00
+        </span>
+      </div>
+
+      <!-- Play / Stop Button -->
+      <button
+        type="button"
+        id="global-timer-btn"
+        onclick="toggleGlobalTimer()"
+        class="h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 active:scale-95"
+      >
+        <svg id="global-timer-play-icon" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+        <svg id="global-timer-stop-icon" class="w-3.5 h-3.5 fill-current hidden" viewBox="0 0 24 24">
+          <rect x="5" y="5" width="14" height="14" rx="2" />
+        </svg>
+        <span id="global-timer-btn-text">Iniciar</span>
+      </button>
+    </div>
+
+    <!-- Right: Theme, Notifications, Avatar -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Theme Switcher -->
+      <button
+        type="button"
+        onclick="toggleTheme()"
+        class="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        title="Alternar tema"
+      >
+        <svg id="theme-moon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <svg id="theme-sun" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      </button>
+
+      <!-- User Avatar & Profile Dropdown -->
+      <%
+        const userName = (typeof user !== 'undefined' && user && user.name) ? user.name : ((typeof user !== 'undefined' && user && user.email) ? user.email.split('@')[0] : 'Usuário');
+        const userInitials = userName.substring(0, 2).toUpperCase();
+        const userRole = (typeof user !== 'undefined' && user && user.role) ? user.role : 'MEMBER';
+      %>
+      <div class="relative group">
+        <a href="/settings" class="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-xs shadow-sm">
+            <%= userInitials %>
+          </div>
+          <div class="hidden xl:flex flex-col text-left">
+            <span class="text-xs font-semibold text-slate-800 dark:text-white leading-tight truncate max-w-[100px]"><%= userName %></span>
+            <span class="text-[10px] text-slate-500 dark:text-slate-400 leading-none"><%= userRole %></span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Global Timer JavaScript Controller -->
+<script>
+  (function() {
+    let timerInterval = null;
+    let isRunning = false;
+    let activeEntryId = null;
+    let timerStartTime = null;
+    let isPomodoro = localStorage.getItem('trackflow-pomodoro-mode') === 'true';
+    let pomodoroDuration = 25 * 60; // 25 min padrão
+
+    const clockEl = document.getElementById('global-timer-clock');
+    const descEl = document.getElementById('global-timer-desc');
+    const projectEl = document.getElementById('global-timer-project');
+    const btnEl = document.getElementById('global-timer-btn');
+    const btnTextEl = document.getElementById('global-timer-btn-text');
+    const playIconEl = document.getElementById('global-timer-play-icon');
+    const stopIconEl = document.getElementById('global-timer-stop-icon');
+    const pomodoroLabelEl = document.getElementById('pomodoro-label');
+
+    function updatePomodoroUI() {
+      if (!pomodoroLabelEl) return;
+      if (isPomodoro) {
+        pomodoroLabelEl.textContent = 'Pomodoro (25m)';
+        pomodoroLabelEl.classList.add('text-amber-500', 'font-semibold');
+      } else {
+        pomodoroLabelEl.textContent = 'Normal';
+        pomodoroLabelEl.classList.remove('text-amber-500', 'font-semibold');
+      }
+    }
+
+    window.togglePomodoroMode = function() {
+      isPomodoro = !isPomodoro;
+      localStorage.setItem('trackflow-pomodoro-mode', isPomodoro ? 'true' : 'false');
+      updatePomodoroUI();
+    };
+
+    function formatTime(totalSeconds) {
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function playChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      } catch (e) {
+        // Ignora caso autoplay esteja bloqueado
+      }
+    }
+
+    function renderRunningState(startTime, desc, projId, entryId) {
+      isRunning = true;
+      timerStartTime = startTime;
+      activeEntryId = entryId;
+
+      if (descEl && desc) descEl.value = desc;
+      if (projectEl && projId) projectEl.value = projId;
+
+      btnEl.className = 'h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-red-500 hover:bg-red-600 text-white shadow-red-500/20 active:scale-95 animate-pulse';
+      btnTextEl.textContent = 'Parar';
+      playIconEl.classList.add('hidden');
+      stopIconEl.classList.remove('hidden');
+
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const elapsedSecs = Math.max(0, Math.floor((Date.now() - timerStartTime) / 1000));
+        
+        if (isPomodoro && elapsedSecs >= pomodoroDuration) {
+          playChime();
+          if (Notification && Notification.permission === 'granted') {
+            new Notification('TrackFlow: Pomodoro Concluído!', {
+              body: 'Hora de fazer um intervalo de 5 minutos.'
+            });
+          }
+        }
+
+        clockEl.textContent = formatTime(elapsedSecs);
+      }, 1000);
+
+      const initialSecs = Math.max(0, Math.floor((Date.now() - timerStartTime) / 1000));
+      clockEl.textContent = formatTime(initialSecs);
+    }
+
+    function renderStoppedState() {
+      isRunning = false;
+      activeEntryId = null;
+      timerStartTime = null;
+
+      if (timerInterval) clearInterval(timerInterval);
+      clockEl.textContent = '00:00:00';
+
+      btnEl.className = 'h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 active:scale-95';
+      btnTextEl.textContent = 'Iniciar';
+      playIconEl.classList.remove('hidden');
+      stopIconEl.classList.add('hidden');
+
+      localStorage.removeItem('trackflow-active-timer');
+    }
+
+    window.toggleGlobalTimer = async function() {
+      btnEl.disabled = true;
+
+      try {
+        if (!isRunning) {
+          // Iniciar Apontamento
+          const desc = descEl ? descEl.value.trim() : '';
+          const projectId = projectEl ? projectEl.value : '';
+
+          const res = await fetch('/time-entries/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ description: desc, projectId: projectId || undefined, billable: true })
+          });
+
+          const data = await res.json();
+          if (data.success && data.data) {
+            const entry = data.data;
+            const startTime = new Date(entry.start).getTime();
+            localStorage.setItem('trackflow-active-timer', JSON.stringify({
+              id: entry.id,
+              start: startTime,
+              description: entry.description,
+              projectId: entry.projectId
+            }));
+            renderRunningState(startTime, entry.description, entry.projectId, entry.id);
+            window.dispatchEvent(new CustomEvent('trackflow:timer-started', { detail: entry }));
+          } else {
+            alert(data.error?.message || 'Não foi possível iniciar o cronômetro.');
+          }
+        } else {
+          // Parar Apontamento
+          const desc = descEl ? descEl.value.trim() : '';
+          const projectId = projectEl ? projectEl.value : '';
+
+          const res = await fetch('/time-entries/stop', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ id: activeEntryId, description: desc, projectId: projectId || undefined })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            renderStoppedState();
+            window.dispatchEvent(new CustomEvent('trackflow:timer-stopped', { detail: data.data }));
+            // Se estiver na tela de dashboard, recarrega para atualizar tabela
+            if (window.location.pathname === '/dashboard') {
+              window.location.reload();
+            }
+          } else {
+            alert(data.error?.message || 'Não foi possível parar o cronômetro.');
+          }
+        }
+      } catch (err) {
+        console.error('Erro no cronômetro:', err);
+        alert('Falha na comunicação com o servidor.');
+      } finally {
+        btnEl.disabled = false;
+      }
+    };
+
+    // Inicialização ao carregar página
+    updatePomodoroUI();
+
+    // 1. Tenta carregar do localStorage
+    const saved = localStorage.getItem('trackflow-active-timer');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.start) {
+          renderRunningState(parsed.start, parsed.description, parsed.projectId, parsed.id);
+        }
+      } catch (e) {
+        localStorage.removeItem('trackflow-active-timer');
+      }
+    }
+
+    // 2. Se houver activeEntry passado pelo SSR na página atual
+    <% if (typeof activeEntry !== 'undefined' && activeEntry) { %>
+      const ssrStartTime = new Date('<%= activeEntry.start %>').getTime();
+      const ssrDesc = '<%= activeEntry.description || "" %>';
+      const ssrProj = '<%= activeEntry.projectId || "" %>';
+      const ssrId = '<%= activeEntry.id %>';
+      localStorage.setItem('trackflow-active-timer', JSON.stringify({
+        id: ssrId,
+        start: ssrStartTime,
+        description: ssrDesc,
+        projectId: ssrProj
+      }));
+      renderRunningState(ssrStartTime, ssrDesc, ssrProj, ssrId);
+    <% } %>
+  })();
+</script>

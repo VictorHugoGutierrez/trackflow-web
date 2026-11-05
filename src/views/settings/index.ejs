@@ -1,0 +1,310 @@
+<%- include('../partials/head') %>
+
+<div class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100">
+  <%- include('../partials/tenant-sidebar', { activeTab: 'settings' }) %>
+
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    <%- include('../partials/tenant-header') %>
+
+    <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-5xl w-full mx-auto space-y-6">
+      <!-- Flash Feedback Alerts -->
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span><%= success %></span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+        </div>
+      <% } %>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="p-4 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/>
+              <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/>
+            </svg>
+            <span><%= error %></span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+        </div>
+      <% } %>
+
+      <!-- Top Header & Tabs -->
+      <div class="pb-2 border-b border-slate-200 dark:border-slate-800 space-y-4">
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Configurações da Conta & Workspace
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Gerencie seu perfil de usuário, taxas horárias, parâmetros de Pomodoro e detalhes da assinatura SaaS
+          </p>
+        </div>
+
+        <!-- Sub-tabs Navigation -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold">
+          <a
+            href="/settings?tab=profile"
+            class="px-4 py-2 rounded-xl transition-all <%= currentTab === 'profile' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' %>"
+          >
+            Meu Perfil
+          </a>
+          <a
+            href="/settings?tab=preferences"
+            class="px-4 py-2 rounded-xl transition-all <%= currentTab === 'preferences' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' %>"
+          >
+            Preferências & Pomodoro
+          </a>
+          <a
+            href="/settings?tab=team"
+            class="px-4 py-2 rounded-xl transition-all <%= currentTab === 'team' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' %>"
+          >
+            Equipe do Workspace
+          </a>
+          <a
+            href="/settings?tab=subscription"
+            class="px-4 py-2 rounded-xl transition-all <%= currentTab === 'subscription' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' %>"
+          >
+            Assinatura SaaS
+          </a>
+        </div>
+      </div>
+
+      <!-- TAB 1: MEU PERFIL -->
+      <% if (currentTab === 'profile') { %>
+        <%
+          const nameInitials = (userMe && userMe.name) ? userMe.name.substring(0, 2).toUpperCase() : 'US';
+        %>
+        <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+          <div class="flex items-center gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
+            <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-xl font-bold">
+              <%= nameInitials %>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-slate-900 dark:text-white"><%= userMe.name || 'Usuário' %></h2>
+              <p class="text-xs text-slate-400 font-mono"><%= userMe.email %></p>
+              <div class="mt-1">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <%= userMe.role || 'MEMBER' %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <form action="/settings/profile" method="POST" class="space-y-4 max-w-lg">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome Completo</label>
+              <input
+                type="text"
+                name="name"
+                value="<%= userMe.name || '' %>"
+                required
+                class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Endereço de E-mail</label>
+              <input
+                type="email"
+                value="<%= userMe.email || '' %>"
+                disabled
+                class="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-500 cursor-not-allowed font-mono"
+              />
+              <p class="text-[10px] text-slate-400 mt-1">O e-mail principal é utilizado para autenticação e não pode ser alterado diretamente.</p>
+            </div>
+
+            <div class="pt-2">
+              <button
+                type="submit"
+                class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
+              >
+                Salvar Alterações do Perfil
+              </button>
+            </div>
+          </form>
+        </div>
+
+      <!-- TAB 2: PREFERÊNCIAS & POMODORO -->
+      <% } else if (currentTab === 'preferences') { %>
+        <%
+          const s = userMe.settings || {};
+        %>
+        <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white">Preferências do Sistema & Parâmetros Financeiros</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Defina sua taxa padrão de faturamento e cadência do método Pomodoro</p>
+          </div>
+
+          <form action="/settings/preferences" method="POST" class="space-y-5 max-w-lg">
+            <!-- Taxa Horária & Moeda -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700/80 space-y-3">
+              <div class="text-xs font-bold text-slate-800 dark:text-white">Taxa Horária Padrão</div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] text-slate-600 dark:text-slate-400 mb-1">Valor por Hora</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="hourlyRate"
+                    value="<%= s.hourlyRate ? Number(s.hourlyRate) : 150.00 %>"
+                    required
+                    class="w-full px-3 py-2 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-mono font-bold focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-[11px] text-slate-600 dark:text-slate-400 mb-1">Moeda</label>
+                  <select
+                    name="currency"
+                    class="w-full px-3 py-2 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="BRL" <%= s.currency === 'BRL' ? 'selected' : '' %>>BRL (R$ - Real)</option>
+                    <option value="USD" <%= s.currency === 'USD' ? 'selected' : '' %>>USD ($ - Dólar)</option>
+                    <option value="EUR" <%= s.currency === 'EUR' ? 'selected' : '' %>>EUR (€ - Euro)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ciclos Pomodoro -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700/80 space-y-3">
+              <div class="text-xs font-bold text-slate-800 dark:text-white">Configuração do Modo Pomodoro</div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] text-slate-600 dark:text-slate-400 mb-1">Tempo de Foco (minutos)</label>
+                  <input
+                    type="number"
+                    name="pomodoroWork"
+                    value="<%= s.pomodoroWork || 25 %>"
+                    min="5"
+                    max="120"
+                    required
+                    class="w-full px-3 py-2 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-[11px] text-slate-600 dark:text-slate-400 mb-1">Tempo de Intervalo (minutos)</label>
+                  <input
+                    type="number"
+                    name="pomodoroBreak"
+                    value="<%= s.pomodoroBreak || 5 %>"
+                    min="1"
+                    max="60"
+                    required
+                    class="w-full px-3 py-2 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button
+                type="submit"
+                class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
+              >
+                Salvar Preferências
+              </button>
+            </div>
+          </form>
+        </div>
+
+      <!-- TAB 3: EQUIPE DO WORKSPACE -->
+      <% } else if (currentTab === 'team') { %>
+        <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white">Membros & Colaboradores do Workspace</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gerenciamento completo de convites, papéis (MANAGER/MEMBER) e taxas</p>
+            </div>
+            <a
+              href="/team"
+              class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm flex items-center gap-1.5"
+            >
+              <span>Acessar Painel da Equipe &rarr;</span>
+            </a>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-slate-700/80 text-center space-y-3">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Gerenciamento Integrado de Equipe</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+              Como <strong><%= userMe.role || 'OWNER' %></strong>, você pode convidar novos membros, editar permissões de gestor e configurar as taxas de cada desenvolvedor ou prestador de serviço.
+            </p>
+            <div class="pt-2">
+              <a
+                href="/team"
+                class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-xl border border-emerald-500/30 transition-colors"
+              >
+                Abrir Gestão de Equipe (/team)
+              </a>
+            </div>
+          </div>
+        </div>
+
+      <!-- TAB 4: ASSINATURA SAAS -->
+      <% } else if (currentTab === 'subscription') { %>
+        <%
+          const tenantInfo = userMe.tenant || {};
+          const plan = (tenantInfo.plan || 'pro').toUpperCase();
+        %>
+        <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white">Plano de Assinatura do Workspace</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sua empresa está operando na infraestrutura corporativa do TrackFlow SaaS</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              Plano <%= plan %>
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700/80">
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">Status do Workspace</div>
+              <div class="text-base font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>Ativo & Regular</span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700/80">
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">Consumo de IA (Ollama)</div>
+              <div class="text-base font-bold text-purple-600 dark:text-purple-400 mt-1">
+                Ilimitado
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700/80">
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">Disparos de E-mail (Resend)</div>
+              <div class="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                Habilitado
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs text-slate-700 dark:text-slate-300 space-y-1">
+            <div class="font-bold text-emerald-700 dark:text-emerald-400">Recursos Inclusos no seu Pacote:</div>
+            <ul class="list-disc list-inside space-y-1 pt-1 text-slate-600 dark:text-slate-400">
+              <li>Cronômetro contínuo persistente sem perda de estado</li>
+              <li>Geração automática de faturas em PDF e resumos executivos com IA</li>
+              <li>Acesso multi-usuário para toda sua equipe (OWNER, MANAGER, MEMBER)</li>
+              <li>Isolamento estrito multi-tenant (PostgreSQL RLS / Schemas)</li>
+            </ul>
+          </div>
+        </div>
+      <% } %>
+    </main>
+  </div>
+</div>

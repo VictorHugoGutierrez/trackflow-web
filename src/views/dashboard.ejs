@@ -1,570 +1,556 @@
 <%- include('partials/head') %>
-<%- include('partials/navbar') %>
 
-<main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 space-y-6">
-  <!-- Feedback Messages -->
-  <% if (typeof success !== 'undefined' && success) { %>
-    <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm">
-      <div class="flex items-center gap-2">
-        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-        </svg>
-        <span><%= success %></span>
-      </div>
-      <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
-    </div>
-  <% } %>
+<%
+  function esc(str) {
+    return (str || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+%>
 
-  <% if (typeof error !== 'undefined' && error) { %>
-    <div class="p-4 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-between shadow-sm">
-      <div class="flex items-center gap-2">
-        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" stroke-width="2"/>
-          <line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/>
-          <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/>
-        </svg>
-        <span><%= error %></span>
-      </div>
-      <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
-    </div>
-  <% } %>
+<div class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100">
+  <%- include('partials/tenant-sidebar', { activeTab: 'dashboard' }) %>
 
-  <div id="timer-feedback" class="hidden p-3 rounded-xl border text-xs"></div>
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    <%- include('partials/tenant-header') %>
 
-  <!-- Hero: O Cronômetro Imortal (Zero Friction Timer) -->
-  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
-      <div>
-        <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>Rastreador de Tempo</span>
-          <span id="timer-live-badge" class="<%= activeEntry ? '' : 'hidden' %> text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 animate-pulse">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            Em andamento
-          </span>
-        </h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Inicie o cronômetro instantaneamente (fricção zero) ou vincule a um projeto
-        </p>
-      </div>
+    <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+      <!-- Feedback Messages -->
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span><%= success %></span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+        </div>
+      <% } %>
 
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
-          onclick="openProjectModal()"
-          class="px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
-        >
-          + Novo Projeto
-        </button>
-        <button
-          type="button"
-          onclick="openTaskModal()"
-          class="px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
-        >
-          + Nova Tarefa
-        </button>
-      </div>
-    </div>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="p-4 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/>
+              <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/>
+            </svg>
+            <span><%= error %></span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+        </div>
+      <% } %>
 
-    <!-- Timer Inputs & Action Row -->
-    <div class="flex flex-col lg:flex-row lg:items-center gap-4">
-      <div class="flex-1">
-        <input
-          type="text"
-          id="timer-description"
-          placeholder="No que você está trabalhando agora?"
-          value="<%= activeEntry && activeEntry.description ? activeEntry.description : '' %>"
-          class="w-full px-4 py-3 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-        />
-      </div>
-
-      <div class="flex flex-wrap items-center gap-3">
-        <!-- Project Selector -->
-        <select
-          id="timer-project"
-          class="px-3 py-3 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer max-w-[160px]"
-        >
-          <option value="">Sem projeto</option>
-          <% if (projects && projects.length > 0) { %>
-            <% projects.forEach(function(p) { %>
-              <option value="<%= p.id %>" <%= activeEntry && activeEntry.projectId === p.id ? 'selected' : '' %>>
-                <%= p.name %>
-              </option>
-            <% }); %>
-          <% } %>
-        </select>
-
-        <!-- Task Selector -->
-        <select
-          id="timer-task"
-          class="px-3 py-3 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer max-w-[160px]"
-        >
-          <option value="">Sem tarefa</option>
-          <% if (tasks && tasks.length > 0) { %>
-            <% tasks.forEach(function(t) { %>
-              <option value="<%= t.id %>" <%= activeEntry && activeEntry.taskId === t.id ? 'selected' : '' %>>
-                <%= t.title %>
-              </option>
-            <% }); %>
-          <% } %>
-        </select>
-
-        <!-- Billable Checkbox -->
-        <label class="flex items-center gap-2 px-3 py-3 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            id="timer-billable"
-            <%= !activeEntry || activeEntry.billable ? 'checked' : '' %>
-            class="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500"
-          />
-          <span>Faturável</span>
-        </label>
-
-        <!-- Big Digital Display -->
-        <div class="px-4 py-2 bg-slate-100 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center min-w-[130px]">
-          <span id="timer-display" class="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-wider">
-            00:00:00
-          </span>
+      <!-- Top Section: Overview & Action Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+            <span>Visão Operacional do Dia</span>
+            <% if (activeEntry) { %>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 animate-pulse">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Cronômetro Ativo
+              </span>
+            <% } %>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Monitore suas horas trabalhadas, produtividade diária e sessões faturáveis
+          </p>
         </div>
 
-        <!-- Play/Stop Button -->
-        <button
-          type="button"
-          id="btn-timer-action"
-          onclick="toggleTimer()"
-          class="h-12 px-6 rounded-xl font-bold text-sm flex items-center gap-2.5 transition-all shadow-md cursor-pointer <%= activeEntry ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20' %>"
-        >
-          <% if (activeEntry) { %>
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-              <rect x="5" y="5" width="14" height="14" rx="2" />
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            onclick="openManualModal()"
+            class="px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            <span id="btn-timer-label">Parar</span>
-          <% } else { %>
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            <span id="btn-timer-label">Iniciar</span>
-          <% } %>
-        </button>
+            <span>+ Apontamento Manual</span>
+          </button>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Operational Metrics Row -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Horas Registradas Hoje</div>
-      <div class="text-2xl font-bold text-slate-900 dark:text-white"><%= metrics ? metrics.hoursToday : '0.0' %>h</div>
-      <div class="text-[11px] text-slate-400">Total acumulado hoje</div>
-    </div>
+      <!-- Operational Metrics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Horas Hoje -->
+        <div class="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
+            <span class="text-xs font-medium">Horas Hoje</span>
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            <%= metrics ? metrics.hoursToday : '0.0' %>h
+          </div>
+          <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
+            <span>Total acumulado no dia</span>
+          </div>
+        </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Aproveitamento Faturável</div>
-      <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400"><%= metrics ? metrics.billablePercent : 100 %>%</div>
-      <div class="text-[11px] text-slate-400">Horas cobráveis a clientes</div>
-    </div>
+        <!-- Aproveitamento Faturável -->
+        <div class="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
+            <span class="text-xs font-medium">Faturamento Estimado</span>
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
+            <%= metrics ? metrics.billablePercent : 100 %>%
+          </div>
+          <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+            Horas cobráveis a clientes
+          </div>
+        </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Apontamentos Hoje</div>
-      <div class="text-2xl font-bold text-blue-600 dark:text-blue-400"><%= metrics ? metrics.entriesCountToday : 0 %></div>
-      <div class="text-[11px] text-slate-400">Sessões de foco registradas</div>
-    </div>
+        <!-- Sessões de Foco / Apontamentos -->
+        <div class="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-colors">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
+            <span class="text-xs font-medium">Sessões Realizadas</span>
+            <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+            <%= metrics ? metrics.entriesCountToday : 0 %>
+          </div>
+          <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+            Blocos de foco no dia
+          </div>
+        </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Projetos Ativos</div>
-      <div class="text-2xl font-bold text-purple-600 dark:text-purple-400"><%= metrics ? metrics.projectsCount : 0 %></div>
-      <div class="text-[11px] text-slate-400">Disponíveis no workspace</div>
-    </div>
-  </div>
-
-  <!-- Recent Time Entries Table -->
-  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm space-y-3 p-6">
-    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
-      <div>
-        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Apontamentos Recentes</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Histórico das últimas sessões de tempo registradas</p>
+        <!-- Projetos Vinculados -->
+        <div class="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-purple-500/30 transition-colors">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
+            <span class="text-xs font-medium">Projetos Ativos</span>
+            <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-purple-600 dark:text-purple-400 tracking-tight">
+            <%= metrics ? metrics.projectsCount : 0 %>
+          </div>
+          <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+            Disponíveis no workspace
+          </div>
+        </div>
       </div>
-      <a href="/dashboard" class="text-xs text-emerald-500 hover:underline font-medium">Atualizar lista</a>
-    </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs">
-        <thead class="bg-slate-50 dark:bg-[#0F172A] border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
-          <tr>
-            <th class="px-4 py-3">Atividade / Descrição</th>
-            <th class="px-4 py-3">Projeto</th>
-            <th class="px-4 py-3">Tarefa</th>
-            <th class="px-4 py-3">Início &rarr; Fim</th>
-            <th class="px-4 py-3">Duração</th>
-            <th class="px-4 py-3">Tipo</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
-          <% if (!timeEntries || timeEntries.length === 0) { %>
-            <tr>
-              <td colspan="6" class="px-4 py-8 text-center text-slate-400">
-                Nenhum apontamento registrado ainda. Clique em <strong>Iniciar</strong> acima para começar seu primeiro rastreamento!
-              </td>
-            </tr>
-          <% } else { %>
-            <% timeEntries.forEach(function(entry) { %>
-              <%
-                const durSeconds = entry.duration || 0;
-                const durH = Math.floor(durSeconds / 3600);
-                const durM = Math.floor((durSeconds % 3600) / 60);
-                const durFormatted = durH > 0 ? `${durH}h ${durM}m` : `${durM}m ${durSeconds % 60}s`;
-                const startTimeFormatted = new Date(entry.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const endTimeFormatted = entry.end ? new Date(entry.end).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Em andamento';
-              %>
-              <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">
-                  <%= entry.description || '(Sem descrição)' %>
-                </td>
-                <td class="px-4 py-3">
-                  <% if (entry.project) { %>
-                    <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                      <%= entry.project.name %>
-                    </span>
-                  <% } else { %>
-                    <span class="text-slate-400">-</span>
-                  <% } %>
-                </td>
-                <td class="px-4 py-3 text-slate-600 dark:text-slate-300">
-                  <%= entry.task ? entry.task.title : '-' %>
-                </td>
-                <td class="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
-                  <%= startTimeFormatted %> &rarr; <%= endTimeFormatted %>
-                </td>
-                <td class="px-4 py-3 font-mono font-semibold text-slate-800 dark:text-slate-200">
-                  <% if (!entry.end) { %>
-                    <span class="text-emerald-500 font-bold animate-pulse">Rodando...</span>
-                  <% } else { %>
-                    <%= durFormatted %>
-                  <% } %>
-                </td>
-                <td class="px-4 py-3">
-                  <% if (entry.billable) { %>
-                    <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                      Faturável
-                    </span>
-                  <% } else { %>
-                    <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                      Não faturável
-                    </span>
-                  <% } %>
-                </td>
+      <!-- Feed de Apontamentos Recentes (DataTable) -->
+      <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm space-y-4 p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Feed de Atividades do Dia</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Clique em uma entrada para editar a descrição, projeto ou faturamento</p>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              onclick="window.location.reload()"
+              class="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+            >
+              Atualizar Lista
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-[#1E293B]/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+              <tr>
+                <th class="px-4 py-3">Atividade / Descrição</th>
+                <th class="px-4 py-3">Projeto</th>
+                <th class="px-4 py-3">Tarefa</th>
+                <th class="px-4 py-3">Início &rarr; Término</th>
+                <th class="px-4 py-3">Duração</th>
+                <th class="px-4 py-3">Faturável</th>
+                <th class="px-4 py-3 text-right">Ações</th>
               </tr>
-            <% }); %>
-          <% } %>
-        </tbody>
-      </table>
-    </div>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <% if (!timeEntries || timeEntries.length === 0) { %>
+                <tr>
+                  <td colspan="7" class="px-4 py-12 text-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center space-y-2">
+                      <svg class="w-8 h-8 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
+                        <polyline points="12 6 12 12 16 14" stroke-width="1.5"/>
+                      </svg>
+                      <p class="font-medium text-slate-500 dark:text-slate-400">Nenhum apontamento registrado ainda hoje.</p>
+                      <p class="text-[11px] text-slate-400">Use o cronômetro no topo ou clique em <strong>+ Apontamento Manual</strong>.</p>
+                    </div>
+                  </td>
+                </tr>
+              <% } else { %>
+                <% timeEntries.forEach(function(entry) { %>
+                  <%
+                    const durSeconds = entry.duration || 0;
+                    const durH = Math.floor(durSeconds / 3600);
+                    const durM = Math.floor((durSeconds % 3600) / 60);
+                    const durFormatted = durH > 0 ? `${durH}h ${durM}m` : `${durM}m ${durSeconds % 60}s`;
+                    const startTimeFormatted = new Date(entry.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    const endTimeFormatted = entry.end ? new Date(entry.end).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Em andamento';
+                  %>
+                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer" onclick="openEditModal('<%= entry.id %>', '<%= esc(entry.description || '') %>', '<%= entry.projectId || '' %>', '<%= entry.taskId || '' %>', '<%= entry.start %>', '<%= entry.end || '' %>', <%= entry.billable ? 'true' : 'false' %>)">
+                    <td class="px-4 py-3.5 font-medium text-slate-900 dark:text-white">
+                      <div class="flex items-center gap-2">
+                        <% if (!entry.end) { %>
+                          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        <% } %>
+                        <span class="truncate max-w-xs md:max-w-sm"><%= entry.description || '(Sem descrição)' %></span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3.5">
+                      <% if (entry.project) { %>
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          <%= entry.project.name %>
+                        </span>
+                      <% } else { %>
+                        <span class="text-slate-400 dark:text-slate-500">-</span>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3.5 text-slate-600 dark:text-slate-400">
+                      <%= entry.task ? entry.task.title : '-' %>
+                    </td>
+                    <td class="px-4 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                      <%= startTimeFormatted %> &rarr; <%= endTimeFormatted %>
+                    </td>
+                    <td class="px-4 py-3.5 font-mono font-semibold text-slate-800 dark:text-slate-200">
+                      <% if (!entry.end) { %>
+                        <span class="text-emerald-600 dark:text-emerald-400 font-bold animate-pulse">Rodando...</span>
+                      <% } else { %>
+                        <%= durFormatted %>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3.5">
+                      <% if (entry.billable) { %>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                          Sim
+                        </span>
+                      <% } else { %>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                          Não
+                        </span>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3.5 text-right space-x-1" onclick="event.stopPropagation()">
+                      <button
+                        type="button"
+                        onclick="openEditModal('<%= entry.id %>', '<%= esc(entry.description || '') %>', '<%= entry.projectId || '' %>', '<%= entry.taskId || '' %>', '<%= entry.start %>', '<%= entry.end || '' %>', <%= entry.billable ? 'true' : 'false' %>)"
+                        class="p-1.5 text-slate-400 hover:text-emerald-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Editar entrada"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onclick="confirmDeleteEntry('<%= entry.id %>')"
+                        class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        title="Excluir entrada"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
   </div>
-</main>
+</div>
 
-<!-- Modal Novo Projeto -->
-<div id="modal-project" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 text-xs shadow-2xl">
-    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-      <h3 class="text-sm font-bold text-slate-900 dark:text-white">Criar Novo Projeto</h3>
-      <button type="button" onclick="closeProjectModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">&times;</button>
+<!-- Modal 1: Adicionar Apontamento Manual -->
+<div id="modal-manual" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Adicionar Apontamento Manual</h3>
+      </div>
+      <button type="button" onclick="closeManualModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg">&times;</button>
     </div>
 
-    <form method="POST" action="/projects" class="space-y-4">
-      <div class="space-y-1">
-        <label for="project-name" class="block text-slate-700 dark:text-slate-300 font-medium">Nome do Projeto</label>
+    <form action="/time-entries/manual" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Descrição da Atividade</label>
         <input
           type="text"
-          id="project-name"
-          name="name"
+          name="description"
+          placeholder="Ex: Reunião de alinhamento com cliente"
           required
-          placeholder="Ex: Redesign da Landing Page"
-          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
-      <div class="space-y-1">
-        <label for="project-budget" class="block text-slate-700 dark:text-slate-300 font-medium">Orçamento Estimado (Horas)</label>
-        <input
-          type="number"
-          step="0.5"
-          id="project-budget"
-          name="budgetHours"
-          placeholder="Ex: 40"
-          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Projeto</label>
+          <select
+            name="projectId"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="">Sem projeto</option>
+            <% if (projects && projects.length > 0) { %>
+              <% projects.forEach(function(p) { %>
+                <option value="<%= p.id %>"><%= p.name %></option>
+              <% }); %>
+            <% } %>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tarefa</label>
+          <select
+            name="taskId"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="">Sem tarefa</option>
+            <% if (tasks && tasks.length > 0) { %>
+              <% tasks.forEach(function(t) { %>
+                <option value="<%= t.id %>"><%= t.title %></option>
+              <% }); %>
+            <% } %>
+          </select>
+        </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Início</label>
+          <input
+            type="datetime-local"
+            name="start"
+            id="manual-start"
+            required
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Término</label>
+          <input
+            type="datetime-local"
+            name="end"
+            id="manual-end"
+            required
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+          />
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" name="billable" checked value="true" class="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500" />
+          <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Tempo faturável para o cliente</span>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
         <button
           type="button"
-          onclick="closeProjectModal()"
-          class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium"
+          onclick="closeManualModal()"
+          class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
         >
           Cancelar
         </button>
         <button
           type="submit"
-          class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow-sm"
+          class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
         >
-          Criar Projeto
+          Salvar Apontamento
         </button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Modal Nova Tarefa -->
-<div id="modal-task" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 text-xs shadow-2xl">
-    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-      <h3 class="text-sm font-bold text-slate-900 dark:text-white">Criar Nova Tarefa</h3>
-      <button type="button" onclick="closeTaskModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">&times;</button>
+<!-- Modal 2: Editar Apontamento -->
+<div id="modal-edit" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Editar Apontamento</h3>
+      </div>
+      <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg">&times;</button>
     </div>
 
-    <form method="POST" action="/tasks" class="space-y-4">
-      <div class="space-y-1">
-        <label for="task-project" class="block text-slate-700 dark:text-slate-300 font-medium">Projeto Vinculado</label>
-        <select
-          id="task-project"
-          name="projectId"
-          required
-          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        >
-          <option value="">Selecione um projeto...</option>
-          <% if (projects && projects.length > 0) { %>
-            <% projects.forEach(function(p) { %>
-              <option value="<%= p.id %>"><%= p.name %></option>
-            <% }); %>
-          <% } %>
-        </select>
-      </div>
-
-      <div class="space-y-1">
-        <label for="task-title" class="block text-slate-700 dark:text-slate-300 font-medium">Título da Tarefa</label>
+    <form id="form-edit-entry" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
         <input
           type="text"
-          id="task-title"
-          name="title"
+          id="edit-description"
+          name="description"
           required
-          placeholder="Ex: Implementar fluxo de autenticação"
-          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
-      <div class="space-y-1">
-        <label for="task-hours" class="block text-slate-700 dark:text-slate-300 font-medium">Horas Estimadas</label>
-        <input
-          type="number"
-          step="0.5"
-          id="task-hours"
-          name="estimatedHours"
-          placeholder="Ex: 8"
-          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Projeto</label>
+          <select
+            id="edit-project"
+            name="projectId"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="">Sem projeto</option>
+            <% if (projects && projects.length > 0) { %>
+              <% projects.forEach(function(p) { %>
+                <option value="<%= p.id %>"><%= p.name %></option>
+              <% }); %>
+            <% } %>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tarefa</label>
+          <select
+            id="edit-task"
+            name="taskId"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="">Sem tarefa</option>
+            <% if (tasks && tasks.length > 0) { %>
+              <% tasks.forEach(function(t) { %>
+                <option value="<%= t.id %>"><%= t.title %></option>
+              <% }); %>
+            <% } %>
+          </select>
+        </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Início</label>
+          <input
+            type="datetime-local"
+            name="start"
+            id="edit-start"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Término</label>
+          <input
+            type="datetime-local"
+            name="end"
+            id="edit-end"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+          />
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="edit-billable" name="billable" value="true" class="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500" />
+          <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Tempo faturável</span>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
         <button
           type="button"
-          onclick="closeTaskModal()"
-          class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium"
+          onclick="closeEditModal()"
+          class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
         >
           Cancelar
         </button>
         <button
           type="submit"
-          class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow-sm"
+          class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
         >
-          Criar Tarefa
+          Salvar Alterações
         </button>
       </div>
     </form>
   </div>
 </div>
+
+<!-- Modal 3: Deletar Apontamento Confirmação -->
+<form id="form-delete-entry" method="POST" class="hidden"></form>
 
 <script>
-  const API_URL = "<%= typeof apiUrl !== 'undefined' ? apiUrl : 'http://localhost:3333' %>";
+  function formatIsoForInput(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
 
-  // Estado do Cronômetro Imortal
-  let isRunning = false;
-  let activeEntryId = null;
-  let startTime = null;
-  let timerInterval = null;
+  function openManualModal() {
+    const modal = document.getElementById('modal-manual');
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    document.getElementById('manual-start').value = formatIsoForInput(oneHourAgo.toISOString());
+    document.getElementById('manual-end').value = formatIsoForInput(now.toISOString());
+    modal.classList.remove('hidden');
+  }
 
-  // Carregar estado inicial (SSR + persistência em localStorage)
-  const initialActive = <%- JSON.stringify(activeEntry || null) %>;
+  function closeManualModal() {
+    document.getElementById('modal-manual').classList.add('hidden');
+  }
 
-  function initTimer() {
-    if (initialActive && initialActive.id) {
-      isRunning = true;
-      activeEntryId = initialActive.id;
-      startTime = new Date(initialActive.start).getTime();
-      saveTimerState();
-      startInterval();
-      updateButtonUI(true);
-    } else {
-      const saved = loadTimerState();
-      if (saved && saved.isRunning && saved.startTime) {
-        isRunning = true;
-        activeEntryId = saved.activeEntryId;
-        startTime = Number(saved.startTime);
-        if (saved.description) document.getElementById("timer-description").value = saved.description;
-        if (saved.projectId) document.getElementById("timer-project").value = saved.projectId;
-        if (saved.taskId) document.getElementById("timer-task").value = saved.taskId;
-        if (saved.billable !== undefined) document.getElementById("timer-billable").checked = saved.billable;
-        startInterval();
-        updateButtonUI(true);
-      } else {
-        updateTimerDisplay(0);
-        updateButtonUI(false);
-      }
+  function openEditModal(id, desc, projId, taskId, start, end, billable) {
+    const modal = document.getElementById('modal-edit');
+    const form = document.getElementById('form-edit-entry');
+    form.action = `/time-entries/${id}/update`;
+
+    document.getElementById('edit-description').value = desc || '';
+    document.getElementById('edit-project').value = projId || '';
+    document.getElementById('edit-task').value = taskId || '';
+    document.getElementById('edit-start').value = formatIsoForInput(start);
+    document.getElementById('edit-end').value = formatIsoForInput(end);
+    document.getElementById('edit-billable').checked = billable === true;
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeEditModal() {
+    document.getElementById('modal-edit').classList.add('hidden');
+  }
+
+  function confirmDeleteEntry(id) {
+    if (confirm('Tem certeza que deseja remover este apontamento de tempo? Esta ação não pode ser desfeita.')) {
+      const form = document.getElementById('form-delete-entry');
+      form.action = `/time-entries/${id}/delete`;
+      form.submit();
     }
   }
 
-  function startInterval() {
-    if (timerInterval) clearInterval(timerInterval);
-    updateTick();
-    timerInterval = setInterval(updateTick, 1000);
-  }
-
-  function updateTick() {
-    if (!startTime) return;
-    const elapsed = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
-    updateTimerDisplay(elapsed);
-  }
-
-  function updateTimerDisplay(totalSeconds) {
-    const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-    const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-    const secs = String(totalSeconds % 60).padStart(2, '0');
-    document.getElementById("timer-display").textContent = `${hrs}:${mins}:${secs}`;
-  }
-
-  function saveTimerState() {
-    localStorage.setItem("trackflow_timer_storage", JSON.stringify({
-      isRunning,
-      activeEntryId,
-      startTime,
-      description: document.getElementById("timer-description").value,
-      projectId: document.getElementById("timer-project").value,
-      taskId: document.getElementById("timer-task").value,
-      billable: document.getElementById("timer-billable").checked,
-    }));
-  }
-
-  function loadTimerState() {
-    try {
-      const data = localStorage.getItem("trackflow_timer_storage");
-      return data ? JSON.parse(data) : null;
-    } catch {
-      return null;
+  // Fechar modais ao teclar Escape
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeManualModal();
+      closeEditModal();
     }
-  }
-
-  function clearTimerState() {
-    localStorage.removeItem("trackflow_timer_storage");
-  }
-
-  function updateButtonUI(running) {
-    const btn = document.getElementById("btn-timer-action");
-    const label = document.getElementById("btn-timer-label");
-    const liveBadge = document.getElementById("timer-live-badge");
-
-    if (running) {
-      btn.className = "h-12 px-6 rounded-xl font-bold text-sm flex items-center gap-2.5 transition-all shadow-md cursor-pointer bg-red-500 hover:bg-red-600 text-white shadow-red-500/20";
-      btn.innerHTML = `
-        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-          <rect x="5" y="5" width="14" height="14" rx="2" />
-        </svg>
-        <span id="btn-timer-label">Parar</span>
-      `;
-      if (liveBadge) liveBadge.classList.remove("hidden");
-    } else {
-      btn.className = "h-12 px-6 rounded-xl font-bold text-sm flex items-center gap-2.5 transition-all shadow-md cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20";
-      btn.innerHTML = `
-        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-          <path d="M8 5v14l11-7z" />
-        </svg>
-        <span id="btn-timer-label">Iniciar</span>
-      `;
-      if (liveBadge) liveBadge.classList.add("hidden");
-    }
-  }
-
-  async function toggleTimer() {
-    const feedback = document.getElementById("timer-feedback");
-    feedback.className = "hidden p-3 rounded-xl border text-xs";
-
-    const description = document.getElementById("timer-description").value.trim();
-    const projectId = document.getElementById("timer-project").value || undefined;
-    const taskId = document.getElementById("timer-task").value || undefined;
-    const billable = document.getElementById("timer-billable").checked;
-
-    if (!isRunning) {
-      // Iniciar Timer (Fricção Zero)
-      try {
-        const res = await fetch("/time-entries/start", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({ description, projectId, taskId, billable }),
-        });
-        const result = await res.json();
-        if (!res.ok || !result.success) {
-          throw new Error(result.error?.message || "Falha ao iniciar o cronômetro.");
-        }
-
-        isRunning = true;
-        activeEntryId = result.data?.id;
-        startTime = Date.now();
-        saveTimerState();
-        startInterval();
-        updateButtonUI(true);
-      } catch (err) {
-        feedback.className = "p-3 rounded-xl border text-xs bg-red-500/10 border-red-500/20 text-red-500";
-        feedback.textContent = err.message;
-      }
-    } else {
-      // Parar Timer
-      try {
-        const res = await fetch("/time-entries/stop", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({ id: activeEntryId, description, projectId, taskId, billable }),
-        });
-        const result = await res.json();
-        if (!res.ok || !result.success) {
-          throw new Error(result.error?.message || "Falha ao parar o cronômetro.");
-        }
-
-        isRunning = false;
-        clearInterval(timerInterval);
-        clearTimerState();
-        updateTimerDisplay(0);
-        updateButtonUI(false);
-        window.location.reload();
-      } catch (err) {
-        feedback.className = "p-3 rounded-xl border text-xs bg-red-500/10 border-red-500/20 text-red-500";
-        feedback.textContent = err.message;
-      }
-    }
-  }
-
-  function openProjectModal() {
-    document.getElementById("modal-project").classList.remove("hidden");
-  }
-  function closeProjectModal() {
-    document.getElementById("modal-project").classList.add("hidden");
-  }
-
-  function openTaskModal() {
-    document.getElementById("modal-task").classList.remove("hidden");
-  }
-  function closeTaskModal() {
-    document.getElementById("modal-task").classList.add("hidden");
-  }
-
-  document.addEventListener("DOMContentLoaded", initTimer);
+  });
 </script>
-
-</body>
-</html>

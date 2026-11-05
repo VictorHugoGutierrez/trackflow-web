@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
@@ -10,6 +11,9 @@ import { authRoutes } from "./routes/auth.routes.js";
 import { dashboardRoutes } from "./routes/dashboard.routes.js";
 import { controlPlaneRoutes } from "./routes/control-plane.routes.js";
 import { teamRoutes } from "./routes/team.routes.js";
+import { clientProjectRoutes } from "./routes/client-project.routes.js";
+import { reportRoutes } from "./routes/report.routes.js";
+import { settingsRoutes } from "./routes/settings.routes.js";
 
 dotenv.config();
 
@@ -39,6 +43,9 @@ app.get("/ping", (_req, res) => {
 app.use(authRoutes);
 app.use(dashboardRoutes);
 app.use(teamRoutes);
+app.use(clientProjectRoutes);
+app.use(reportRoutes);
+app.use(settingsRoutes);
 app.use(controlPlaneRoutes);
 
 app.use((_req, res) => {
@@ -50,7 +57,11 @@ app.use((_req, res) => {
 
 const PORT = Number(process.env.PORT) || 3000;
 
-if (process.env.NODE_ENV !== "test") {
+const isDirectRun = Boolean(
+  process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
+);
+
+if (isDirectRun && process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
     console.log(`TrackFlow Web rodando na porta ${PORT}`);
   });

@@ -1,9 +1,12 @@
 <%- include('partials/head') %>
 
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <main class="flex-1 flex items-center justify-center p-6">
   <div class="w-full max-w-md space-y-6">
     <div class="text-center space-y-2">
-      <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 mx-auto">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 mx-auto shadow-sm">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10" stroke-width="2"/>
           <polyline points="12 6 12 12 16 14" stroke-width="2"/>
@@ -19,7 +22,7 @@
       <div class="text-left pb-2 border-b border-slate-200 dark:border-slate-800">
         <h2 class="text-base font-semibold text-slate-900 dark:text-white">Acesse sua conta</h2>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Entre com as suas credenciais corporativas
+          Entre com as suas credenciais corporativas ou conta Google
         </p>
       </div>
 
@@ -32,6 +35,7 @@
         </div>
       <% } %>
 
+      <!-- Email / Password Form -->
       <form id="form-login" onsubmit="handleEmailLogin(event)" class="space-y-4">
         <div class="space-y-1">
           <label for="login-email" class="block text-xs font-medium text-slate-700 dark:text-slate-300">
@@ -44,7 +48,7 @@
             required
             autocomplete="email"
             placeholder="seu@email.com"
-            class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+            class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
           />
         </div>
 
@@ -59,7 +63,7 @@
             required
             autocomplete="current-password"
             placeholder="••••••••"
-            class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+            class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
           />
         </div>
 
@@ -72,22 +76,24 @@
         </button>
       </form>
 
-      <div class="relative flex items-center justify-center py-2">
+      <div class="relative flex items-center justify-center py-1">
         <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
+          <div class="w-full border-t border-slate-200 dark:border-slate-800"></div>
         </div>
-        <span class="relative px-3 bg-white dark:bg-[#1E293B] text-xs uppercase tracking-wider text-slate-400">
+        <span class="relative px-3 bg-white dark:bg-[#1E293B] text-[11px] font-semibold uppercase tracking-wider text-slate-400 select-none">
           ou continue com
         </span>
       </div>
 
+      <!-- Custom Premium Google Button -->
       <button
         type="button"
-        id="google-login-btn"
-        onclick="handleGoogleAuth()"
-        class="w-full h-11 flex items-center justify-center gap-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium rounded-xl hover:opacity-90 transition-opacity shadow-sm text-sm cursor-pointer"
+        id="btn-google-login"
+        onclick="handleGoogleSignIn()"
+        class="w-full h-11 flex items-center justify-center gap-3 bg-white dark:bg-[#0F172A] hover:bg-slate-50 dark:hover:bg-[#152033] text-slate-700 dark:text-slate-200 font-medium rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-150 shadow-sm hover:shadow active:scale-[0.99] cursor-pointer text-sm group"
       >
-        <svg class="w-4 h-4" viewBox="0 0 24 24">
+        <!-- Vector Google SVG Icon without any white background box -->
+        <svg class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
           <path
             fill="#4285F4"
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -105,7 +111,9 @@
             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
           />
         </svg>
-        <span id="btn-google-text">Continuar com Google</span>
+        <span id="btn-google-text" class="text-xs font-semibold text-slate-800 dark:text-slate-100">
+          Continuar com o Google
+        </span>
       </button>
 
       <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-800">
@@ -119,6 +127,7 @@
 
 <script>
   const API_URL = "<%= typeof apiUrl !== 'undefined' ? apiUrl : 'http://localhost:3333' %>";
+  const GOOGLE_CLIENT_ID = "<%= typeof googleClientId !== 'undefined' ? googleClientId : '' %>";
 
   function clearFeedback() {
     const errorBox = document.getElementById('error-box');
@@ -191,33 +200,101 @@
     }
   }
 
-  async function handleGoogleAuth(mockToken) {
-    clearFeedback();
-    const btnText = document.getElementById('btn-google-text');
-    const originalText = btnText.textContent;
-    btnText.textContent = 'Autenticando...';
+  // --- Google Identity Services Initialization ---
+  let googleTokenClient = null;
 
-    const idToken = mockToken || 'simulated_google_token';
+  function initGoogleOAuth() {
+    if (!GOOGLE_CLIENT_ID) {
+      console.warn("GOOGLE_CLIENT_ID não configurado no .env");
+      return;
+    }
+
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+      googleTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: "email profile openid",
+        callback: async (tokenResponse) => {
+          if (tokenResponse && tokenResponse.access_token) {
+            await authenticateWithGoogle({ accessToken: tokenResponse.access_token });
+          } else if (tokenResponse && tokenResponse.error) {
+            showError("Acesso cancelado ou não autorizado pelo Google.");
+            resetGoogleButton();
+          }
+        },
+      });
+
+      // Suporte opcional a One Tap se disponível
+      if (window.google.accounts.id) {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: async (credentialResponse) => {
+            if (credentialResponse && credentialResponse.credential) {
+              await authenticateWithGoogle({ idToken: credentialResponse.credential });
+            }
+          },
+          auto_select: false,
+        });
+        try {
+          google.accounts.id.prompt();
+        } catch (e) {}
+      }
+    } else {
+      setTimeout(initGoogleOAuth, 200);
+    }
+  }
+
+  function handleGoogleSignIn() {
+    clearFeedback();
+    const btn = document.getElementById('btn-google-login');
+    const btnText = document.getElementById('btn-google-text');
+
+    if (googleTokenClient) {
+      btnText.textContent = 'Conectando ao Google...';
+      btn.classList.add('opacity-75', 'cursor-wait');
+      googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+    } else if (window.google && window.google.accounts && window.google.accounts.id) {
+      btnText.textContent = 'Conectando ao Google...';
+      google.accounts.id.prompt();
+    } else {
+      showError("Carregando serviços do Google... Aguarde um segundo e tente novamente.");
+    }
+  }
+
+  function resetGoogleButton() {
+    const btn = document.getElementById('btn-google-login');
+    const btnText = document.getElementById('btn-google-text');
+    if (btnText) btnText.textContent = 'Continuar com o Google';
+    if (btn) btn.classList.remove('opacity-75', 'cursor-wait');
+  }
+
+  async function authenticateWithGoogle(payload) {
+    showSuccess("Validando autenticação com o Google...");
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/google`, {
+      const res = await fetch('/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ idToken, googleToken: idToken }),
+        body: JSON.stringify(payload),
       });
 
       const result = await res.json();
 
       if (!res.ok || !result.success) {
-        throw new Error(result.error?.message || result.message || 'Falha na autenticação com o Google.');
+        throw new Error(result.error?.message || result.message || 'Falha na validação com o Google.');
       }
 
       await handleAuthSuccess(result.data);
     } catch (err) {
       showError(err.message);
-      btnText.textContent = originalText;
+      resetGoogleButton();
     }
+  }
+
+  // Inicializa quando o DOM estiver pronto
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGoogleOAuth);
+  } else {
+    initGoogleOAuth();
   }
 </script>
 

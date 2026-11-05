@@ -1,0 +1,776 @@
+<%- include('../partials/head') %>
+
+<%
+  function esc(str) {
+    return (str || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+%>
+
+<div class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100">
+  <%- include('../partials/tenant-sidebar', { activeTab: 'projects' }) %>
+
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    <%- include('../partials/tenant-header') %>
+
+    <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+      <!-- Flash Feedback Alerts -->
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span><%= success %></span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+        </div>
+      <% } %>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="p-4 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/>
+              <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/>
+            </svg>
+            <span><%= error %></span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none">&times;</button>
+        </div>
+      <% } %>
+
+      <!-- Top Header & Tabs Navigation -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+            <span>Gestão de Projetos & Clientes</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Organize centros de custo, alocação de tarefas e cadastros de clientes faturáveis
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Tab Navigation Switcher -->
+          <div class="flex items-center p-1 bg-slate-200/80 dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-slate-700/80">
+            <a
+              href="/projects?tab=projects"
+              class="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all <%= currentTab === 'projects' ? 'bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' %>"
+            >
+              Projetos (<%= projects ? projects.length : 0 %>)
+            </a>
+            <a
+              href="/projects?tab=clients"
+              class="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all <%= currentTab === 'clients' ? 'bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' %>"
+            >
+              Clientes (<%= clients ? clients.length : 0 %>)
+            </a>
+          </div>
+
+          <!-- Main CTA based on Tab -->
+          <% if (currentTab === 'projects') { %>
+            <button
+              type="button"
+              onclick="openNewProjectModal()"
+              class="px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              <span>+ Novo Projeto</span>
+            </button>
+          <% } else { %>
+            <button
+              type="button"
+              onclick="openNewClientModal()"
+              class="px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              <span>+ Novo Cliente</span>
+            </button>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- TAB 1: PROJETOS -->
+      <% if (currentTab === 'projects') { %>
+        <!-- Project Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total de Projetos</div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1"><%= projectMetrics.total %></div>
+            <div class="text-[11px] text-slate-400 mt-1">Registrados no workspace</div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Em Andamento</div>
+            <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1"><%= projectMetrics.inProgress %></div>
+            <div class="text-[11px] text-slate-400 mt-1">Ativos recebendo horas</div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Concluídos</div>
+            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1"><%= projectMetrics.completed %></div>
+            <div class="text-[11px] text-slate-400 mt-1">Entregas finalizadas</div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Arquivados</div>
+            <div class="text-2xl font-bold text-slate-500 dark:text-slate-400 mt-1"><%= projectMetrics.archived %></div>
+            <div class="text-[11px] text-slate-400 mt-1">Histórico mantido</div>
+          </div>
+        </div>
+
+        <!-- Projects Table -->
+        <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">Lista de Projetos</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gerencie os projetos e suas tarefas associadas</p>
+            </div>
+            
+            <div class="relative w-full sm:w-64">
+              <input
+                type="text"
+                id="search-projects"
+                onkeyup="filterTable('search-projects', 'projects-tbody')"
+                placeholder="Filtrar projetos..."
+                class="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+              <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 dark:bg-[#1E293B]/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+                <tr>
+                  <th class="px-4 py-3">Nome do Projeto</th>
+                  <th class="px-4 py-3">Cliente</th>
+                  <th class="px-4 py-3">Orçamento / Budget</th>
+                  <th class="px-4 py-3">Status</th>
+                  <th class="px-4 py-3 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="projects-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80">
+                <% if (!projects || projects.length === 0) { %>
+                  <tr>
+                    <td colspan="5" class="px-4 py-12 text-center text-slate-400">
+                      Nenhum projeto cadastrado. Clique em <strong>+ Novo Projeto</strong> para iniciar.
+                    </td>
+                  </tr>
+                <% } else { %>
+                  <% projects.forEach(function(p) { %>
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                      <td class="px-4 py-3.5 font-medium text-slate-900 dark:text-white">
+                        <div class="flex items-center gap-2">
+                          <span class="w-2 h-2 rounded-full <%= p.status === 'em_andamento' ? 'bg-emerald-500' : (p.status === 'concluido' ? 'bg-blue-500' : 'bg-slate-400') %>"></span>
+                          <span class="font-bold"><%= p.name %></span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3.5">
+                        <% if (p.client) { %>
+                          <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                            <%= p.client.name %>
+                          </span>
+                        <% } else { %>
+                          <span class="text-slate-400 dark:text-slate-500">(Sem cliente)</span>
+                        <% } %>
+                      </td>
+                      <td class="px-4 py-3.5 font-mono text-slate-700 dark:text-slate-300">
+                        <%= p.budgetHours ? p.budgetHours + ' horas' : 'Sem limite' %>
+                      </td>
+                      <td class="px-4 py-3.5">
+                        <% if (p.status === 'em_andamento') { %>
+                          <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            Em Andamento
+                          </span>
+                        <% } else if (p.status === 'concluido') { %>
+                          <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                            Concluído
+                          </span>
+                        <% } else { %>
+                          <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                            Arquivado
+                          </span>
+                        <% } %>
+                      </td>
+                      <td class="px-4 py-3.5 text-right space-x-1">
+                        <button
+                          type="button"
+                          onclick="openProjectTasksModal('<%= p.id %>', '<%= esc(p.name) %>')"
+                          class="px-2.5 py-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors border border-emerald-500/20"
+                          title="Gerenciar Tarefas"
+                        >
+                          Tarefas
+                        </button>
+                        <button
+                          type="button"
+                          onclick="openEditProjectModal('<%= p.id %>', '<%= esc(p.name) %>', '<%= p.clientId || '' %>', '<%= p.budgetHours || '' %>', '<%= p.status %>')"
+                          class="p-1.5 text-slate-400 hover:text-emerald-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          title="Editar Projeto"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onclick="confirmDeleteProject('<%= p.id %>')"
+                          class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                          title="Excluir Projeto"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  <% }); %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      <!-- TAB 2: CLIENTES -->
+      <% } else { %>
+        <!-- Client Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total de Clientes</div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1"><%= clientMetrics.total %></div>
+            <div class="text-[11px] text-slate-400 mt-1">Contas corporativas / pessoas físicas</div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Clientes Ativos</div>
+            <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1"><%= clientMetrics.active %></div>
+            <div class="text-[11px] text-slate-400 mt-1">Habilitados para novos projetos</div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Inativos / Pausados</div>
+            <div class="text-2xl font-bold text-slate-500 dark:text-slate-400 mt-1"><%= clientMetrics.inactive %></div>
+            <div class="text-[11px] text-slate-400 mt-1">Sem faturamento recente</div>
+          </div>
+        </div>
+
+        <!-- Clientes Table -->
+        <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">Lista de Clientes Cadastrados</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Destinatários de faturas e vinculação de projetos</p>
+            </div>
+            
+            <div class="relative w-full sm:w-64">
+              <input
+                type="text"
+                id="search-clients"
+                onkeyup="filterTable('search-clients', 'clients-tbody')"
+                placeholder="Filtrar clientes..."
+                class="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+              <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 dark:bg-[#1E293B]/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+                <tr>
+                  <th class="px-4 py-3">Nome do Cliente</th>
+                  <th class="px-4 py-3">Contato / E-mail de Cobrança</th>
+                  <th class="px-4 py-3">Status</th>
+                  <th class="px-4 py-3">Data de Cadastro</th>
+                  <th class="px-4 py-3 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="clients-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80">
+                <% if (!clients || clients.length === 0) { %>
+                  <tr>
+                    <td colspan="5" class="px-4 py-12 text-center text-slate-400">
+                      Nenhum cliente cadastrado. Clique em <strong>+ Novo Cliente</strong> para cadastrar sua primeira empresa faturável.
+                    </td>
+                  </tr>
+                <% } else { %>
+                  <% clients.forEach(function(c) { %>
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                      <td class="px-4 py-3.5 font-bold text-slate-900 dark:text-white">
+                        <%= c.name %>
+                      </td>
+                      <td class="px-4 py-3.5 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                        <%= c.contact || '(Sem contato cadastrado)' %>
+                      </td>
+                      <td class="px-4 py-3.5">
+                        <% if (c.active !== false) { %>
+                          <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            Ativo
+                          </span>
+                        <% } else { %>
+                          <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                            Inativo
+                          </span>
+                        <% } %>
+                      </td>
+                      <td class="px-4 py-3.5 text-slate-400 font-mono text-[11px]">
+                        <%= c.createdAt ? new Date(c.createdAt).toLocaleDateString('pt-BR') : '-' %>
+                      </td>
+                      <td class="px-4 py-3.5 text-right space-x-1">
+                        <button
+                          type="button"
+                          onclick="openEditClientModal('<%= c.id %>', '<%= esc(c.name) %>', '<%= esc(c.contact || '') %>', <%= c.active !== false ? 'true' : 'false' %>)"
+                          class="p-1.5 text-slate-400 hover:text-emerald-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          title="Editar Cliente"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onclick="confirmDeleteClient('<%= c.id %>')"
+                          class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                          title="Excluir Cliente"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  <% }); %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } %>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL: Novo Projeto -->
+<div id="modal-new-project" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">Novo Projeto</h3>
+      <button type="button" onclick="closeNewProjectModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form action="/projects" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome do Projeto</label>
+        <input
+          type="text"
+          name="name"
+          placeholder="Ex: Refatoração Front-end Web"
+          required
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cliente Associado</label>
+        <select
+          name="clientId"
+          class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="">(Sem cliente vinculado)</option>
+          <% if (clients && clients.length > 0) { %>
+            <% clients.forEach(function(c) { %>
+              <option value="<%= c.id %>"><%= c.name %></option>
+            <% }); %>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Orçamento (Horas)</label>
+          <input
+            type="number"
+            step="0.5"
+            name="budgetHours"
+            placeholder="Ex: 40"
+            class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Status Inicial</label>
+          <select
+            name="status"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="em_andamento">Em Andamento</option>
+            <option value="concluido">Concluído</option>
+            <option value="arquivado">Arquivado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeNewProjectModal()" class="px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">Criar Projeto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Editar Projeto -->
+<div id="modal-edit-project" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">Editar Projeto</h3>
+      <button type="button" onclick="closeEditProjectModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form id="form-edit-project" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome do Projeto</label>
+        <input
+          type="text"
+          id="edit-proj-name"
+          name="name"
+          required
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cliente Associado</label>
+        <select
+          id="edit-proj-client"
+          name="clientId"
+          class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="">(Sem cliente vinculado)</option>
+          <% if (clients && clients.length > 0) { %>
+            <% clients.forEach(function(c) { %>
+              <option value="<%= c.id %>"><%= c.name %></option>
+            <% }); %>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Orçamento (Horas)</label>
+          <input
+            type="number"
+            step="0.5"
+            id="edit-proj-budget"
+            name="budgetHours"
+            class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Status</label>
+          <select
+            id="edit-proj-status"
+            name="status"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="em_andamento">Em Andamento</option>
+            <option value="concluido">Concluído</option>
+            <option value="arquivado">Arquivado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeEditProjectModal()" class="px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Gerenciar Tarefas do Projeto -->
+<div id="modal-project-tasks" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <span>Tarefas de</span>
+          <span id="tasks-project-name" class="text-emerald-600 dark:text-emerald-400"></span>
+        </h3>
+        <p class="text-[11px] text-slate-400 mt-0.5">Subdivisões de trabalho apontáveis no cronômetro</p>
+      </div>
+      <button type="button" onclick="closeProjectTasksModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <!-- Lista de tarefas existentes -->
+    <div class="space-y-2 max-h-56 overflow-y-auto" id="tasks-list-container">
+      <div class="text-center py-6 text-slate-400 text-xs">Carregando tarefas...</div>
+    </div>
+
+    <!-- Formulário para adicionar nova tarefa -->
+    <form action="/tasks" method="POST" class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+      <input type="hidden" id="task-form-project-id" name="projectId" />
+      <div class="text-xs font-bold text-slate-800 dark:text-white">+ Adicionar Nova Tarefa</div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div class="sm:col-span-2">
+          <input
+            type="text"
+            name="title"
+            placeholder="Título da tarefa"
+            required
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-emerald-500"
+          />
+        </div>
+        <div>
+          <input
+            type="number"
+            step="0.5"
+            name="estimatedHours"
+            placeholder="Est. (h)"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-emerald-500"
+          />
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button
+          type="submit"
+          class="px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
+        >
+          Criar Tarefa
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Novo Cliente (Slide-over/Modal) -->
+<div id="modal-new-client" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">Cadastrar Novo Cliente</h3>
+      <button type="button" onclick="closeNewClientModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form action="/clients" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome da Empresa / Cliente</label>
+        <input
+          type="text"
+          name="name"
+          placeholder="Ex: ACME Indústria S.A."
+          required
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Contato / E-mail de Faturamento</label>
+        <input
+          type="text"
+          name="contact"
+          placeholder="Ex: financeiro@acme.com ou (11) 99999-9999"
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeNewClientModal()" class="px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">Salvar Cliente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Editar Cliente -->
+<div id="modal-edit-client" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">Editar Cliente</h3>
+      <button type="button" onclick="closeEditClientModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form id="form-edit-client" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome do Cliente</label>
+        <input
+          type="text"
+          id="edit-client-name"
+          name="name"
+          required
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Contato / E-mail</label>
+        <input
+          type="text"
+          id="edit-client-contact"
+          name="contact"
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <div class="pt-2">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="edit-client-active" name="active" value="true" class="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500" />
+          <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Cliente Ativo</span>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeEditClientModal()" class="px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Forms Ocultos para Exclusões -->
+<form id="form-delete-project" method="POST" class="hidden"></form>
+<form id="form-delete-client" method="POST" class="hidden"></form>
+<form id="form-delete-task" method="POST" class="hidden"></form>
+
+<script>
+  function filterTable(inputId, tbodyId) {
+    const query = document.getElementById(inputId).value.toLowerCase();
+    const rows = document.getElementById(tbodyId).getElementsByTagName('tr');
+    for (let r of rows) {
+      const text = r.innerText.toLowerCase();
+      r.style.display = text.includes(query) ? '' : 'none';
+    }
+  }
+
+  // Projetos Modais
+  function openNewProjectModal() {
+    document.getElementById('modal-new-project').classList.remove('hidden');
+  }
+  function closeNewProjectModal() {
+    document.getElementById('modal-new-project').classList.add('hidden');
+  }
+
+  function openEditProjectModal(id, name, clientId, budgetHours, status) {
+    const modal = document.getElementById('modal-edit-project');
+    const form = document.getElementById('form-edit-project');
+    form.action = `/projects/${id}/update`;
+
+    document.getElementById('edit-proj-name').value = name;
+    document.getElementById('edit-proj-client').value = clientId;
+    document.getElementById('edit-proj-budget').value = budgetHours;
+    document.getElementById('edit-proj-status').value = status || 'em_andamento';
+
+    modal.classList.remove('hidden');
+  }
+  function closeEditProjectModal() {
+    document.getElementById('modal-edit-project').classList.add('hidden');
+  }
+
+  function confirmDeleteProject(id) {
+    if (confirm('Atenção: Ao excluir o projeto, todas as tarefas e apontamentos vinculados podem ser afetados. Confirmar exclusão?')) {
+      const form = document.getElementById('form-delete-project');
+      form.action = `/projects/${id}/delete`;
+      form.submit();
+    }
+  }
+
+  // Clientes Modais
+  function openNewClientModal() {
+    document.getElementById('modal-new-client').classList.remove('hidden');
+  }
+  function closeNewClientModal() {
+    document.getElementById('modal-new-client').classList.add('hidden');
+  }
+
+  function openEditClientModal(id, name, contact, active) {
+    const modal = document.getElementById('modal-edit-client');
+    const form = document.getElementById('form-edit-client');
+    form.action = `/clients/${id}/update`;
+
+    document.getElementById('edit-client-name').value = name;
+    document.getElementById('edit-client-contact').value = contact;
+    document.getElementById('edit-client-active').checked = active;
+
+    modal.classList.remove('hidden');
+  }
+  function closeEditClientModal() {
+    document.getElementById('modal-edit-client').classList.add('hidden');
+  }
+
+  function confirmDeleteClient(id) {
+    if (confirm('Atenção: A exclusão de um cliente pode afetar seus projetos e faturas associadas. Confirmar exclusão?')) {
+      const form = document.getElementById('form-delete-client');
+      form.action = `/clients/${id}/delete`;
+      form.submit();
+    }
+  }
+
+  // Tarefas do Projeto
+  async function openProjectTasksModal(projectId, projectName) {
+    document.getElementById('tasks-project-name').textContent = projectName;
+    document.getElementById('task-form-project-id').value = projectId;
+    const container = document.getElementById('tasks-list-container');
+    container.innerHTML = '<div class="text-center py-6 text-slate-400 text-xs">Carregando tarefas...</div>';
+    document.getElementById('modal-project-tasks').classList.remove('hidden');
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/tasks`);
+      const json = await res.json();
+      if (json.success && json.data && json.data.length > 0) {
+        container.innerHTML = json.data.map(t => `
+          <div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-slate-700/80 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full ${t.status === 'done' ? 'bg-emerald-500' : (t.status === 'doing' ? 'bg-blue-500' : 'bg-slate-400')}"></span>
+              <span class="font-medium text-slate-800 dark:text-white">${t.title}</span>
+              ${t.estimatedHours ? `<span class="text-[10px] text-slate-400 font-mono">(${t.estimatedHours}h)</span>` : ''}
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${t.status === 'done' ? 'bg-emerald-500/10 text-emerald-500' : (t.status === 'doing' ? 'bg-blue-500/10 text-blue-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-400')}">
+                ${t.status.toUpperCase()}
+              </span>
+              <button type="button" onclick="confirmDeleteTask('${t.id}')" class="text-slate-400 hover:text-red-500 p-1">
+                &times;
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        container.innerHTML = '<div class="text-center py-6 text-slate-400 text-xs">Nenhuma tarefa cadastrada neste projeto.</div>';
+      }
+    } catch (e) {
+      container.innerHTML = '<div class="text-center py-6 text-red-500 text-xs">Erro ao carregar tarefas.</div>';
+    }
+  }
+
+  function closeProjectTasksModal() {
+    document.getElementById('modal-project-tasks').classList.add('hidden');
+  }
+
+  function confirmDeleteTask(taskId) {
+    if (confirm('Deseja excluir esta tarefa?')) {
+      const form = document.getElementById('form-delete-task');
+      form.action = `/tasks/${taskId}/delete`;
+      form.submit();
+    }
+  }
+
+  // Escape para fechar
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeNewProjectModal();
+      closeEditProjectModal();
+      closeNewClientModal();
+      closeEditClientModal();
+      closeProjectTasksModal();
+    }
+  });
+</script>
