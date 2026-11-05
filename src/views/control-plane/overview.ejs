@@ -1,6 +1,6 @@
 <%- include('../partials/head') %>
 
-<div class="flex min-h-screen bg-[#080C14] text-slate-100">
+<div class="flex min-h-screen bg-background text-foreground">
   <%- include('partials/sidebar', { activeTab: 'overview' }) %>
 
   <div class="flex-1 flex flex-col min-w-0">
@@ -9,8 +9,8 @@
     <main class="flex-1 p-8 space-y-8 max-w-7xl w-full mx-auto overflow-y-auto">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-bold tracking-tight text-white">Dashboard Operacional do SaaS</h1>
-          <p class="text-xs text-slate-400 mt-1">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard Operacional do SaaS</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Métricas consolidadas em tempo real e saúde global da infraestrutura TrackFlow
           </p>
         </div>
@@ -18,7 +18,7 @@
         <button
           type="button"
           onclick="loadMetrics()"
-          class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 transition-colors shadow-sm cursor-pointer self-start"
+          class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 transition-colors shadow-sm cursor-pointer self-start"
         >
           <svg id="refresh-icon" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -28,46 +28,46 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-[#0E1526] border border-slate-800/80 rounded-2xl p-6 space-y-3 shadow-sm hover:border-slate-700 transition-all">
-          <div class="flex items-center justify-between text-slate-400">
+        <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tenants Ativos</span>
-            <div class="p-2 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20">
+            <div class="p-2 bg-blue-500/10 text-blue-500 dark:text-blue-400 rounded-xl border border-blue-500/20">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
           </div>
           <div class="flex items-baseline gap-2">
-            <span id="metric-active-tenants" class="text-3xl font-bold text-white tracking-tight">--</span>
-            <span id="metric-total-tenants" class="text-xs text-slate-400 font-medium">de -- total</span>
+            <span id="metric-active-tenants" class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">--</span>
+            <span id="metric-total-tenants" class="text-xs text-slate-500 dark:text-slate-400 font-medium">de -- total</span>
           </div>
-          <div class="text-[11px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-800/60">
-            <span>Suspensos: <strong id="metric-suspended-tenants" class="text-amber-400 font-mono font-normal">--</strong></span>
-            <span>Usuários: <strong id="metric-total-users" class="text-slate-300 font-mono font-normal">--</strong></span>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+            <span>Suspensos: <strong id="metric-suspended-tenants" class="text-amber-600 dark:text-amber-400 font-mono font-normal">--</strong></span>
+            <span>Usuários: <strong id="metric-total-users" class="text-slate-700 dark:text-slate-300 font-mono font-normal">--</strong></span>
           </div>
         </div>
 
-        <div class="bg-[#0E1526] border border-slate-800/80 rounded-2xl p-6 space-y-3 shadow-sm hover:border-slate-700 transition-all">
-          <div class="flex items-center justify-between text-slate-400">
+        <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">MRR Estimado</span>
-            <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+            <div class="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
           <div class="flex items-baseline gap-1">
-            <span id="metric-mrr" class="text-3xl font-bold text-emerald-400 tracking-tight">R$ 0,00</span>
+            <span id="metric-mrr" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">R$ 0,00</span>
           </div>
-          <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60">
             Receita Mensal Recorrente projetada
           </div>
         </div>
 
-        <div class="bg-[#0E1526] border border-slate-800/80 rounded-2xl p-6 space-y-3 shadow-sm hover:border-slate-700 transition-all">
-          <div class="flex items-center justify-between text-slate-400">
+        <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Horas Hoje</span>
-            <div class="p-2 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+            <div class="p-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" stroke-width="2"/>
                 <polyline points="12 6 12 12 16 14" stroke-width="2"/>
@@ -75,41 +75,41 @@
             </div>
           </div>
           <div class="flex items-baseline gap-1">
-            <span id="metric-today-hours" class="text-3xl font-bold text-white tracking-tight">0.0</span>
-            <span class="text-xs text-slate-400 font-medium">horas</span>
+            <span id="metric-today-hours" class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">0.0</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">horas</span>
           </div>
-          <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
-            Registros totais: <strong id="metric-total-entries" class="text-slate-300 font-mono font-normal">--</strong>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60">
+            Registros totais: <strong id="metric-total-entries" class="text-slate-700 dark:text-slate-300 font-mono font-normal">--</strong>
           </div>
         </div>
 
-        <div class="bg-[#0E1526] border border-slate-800/80 rounded-2xl p-6 space-y-3 shadow-sm hover:border-slate-700 transition-all">
-          <div class="flex items-center justify-between text-slate-400">
+        <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Consumo IA (Ollama)</span>
-            <div class="p-2 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20">
+            <div class="p-2 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-500/20">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
           </div>
           <div class="flex items-baseline gap-1">
-            <span id="metric-ai-reports" class="text-3xl font-bold text-purple-400 tracking-tight">--</span>
-            <span class="text-xs text-slate-400 font-medium">relatórios</span>
+            <span id="metric-ai-reports" class="text-3xl font-bold text-purple-600 dark:text-purple-400 tracking-tight">--</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">relatórios</span>
           </div>
-          <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
-            Modelo: <strong class="text-purple-300 font-mono font-normal">gemma4</strong> (local)
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60">
+            Modelo: <strong class="text-purple-600 dark:text-purple-300 font-mono font-normal">gemma4</strong> (local)
           </div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 bg-[#0E1526] border border-slate-800/80 rounded-2xl p-6 space-y-6">
+        <div class="lg:col-span-2 bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-6 shadow-sm">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-sm font-semibold text-white">Distribuição de Tenants por Plano</h2>
-              <p class="text-xs text-slate-400 mt-0.5">Composição da base de clientes entre Freemium, Pro e Enterprise</p>
+              <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Distribuição de Tenants por Plano</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Composição da base de clientes entre Freemium, Pro e Enterprise</p>
             </div>
-            <a href="/control-plane/tenants" class="text-xs text-amber-400 hover:underline font-medium">
+            <a href="/control-plane/tenants" class="text-xs text-amber-600 dark:text-amber-400 hover:underline font-medium">
               Ver Todos &rarr;
             </a>
           </div>
@@ -119,48 +119,48 @@
           </div>
         </div>
 
-        <div class="bg-[#0E1526] border border-slate-800/80 rounded-2xl p-6 space-y-6">
+        <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-6 shadow-sm">
           <div>
-            <h2 class="text-sm font-semibold text-white">Saúde dos Serviços</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Integridade da infraestrutura do backend</p>
+            <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Saúde dos Serviços</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Integridade da infraestrutura do backend</p>
           </div>
 
           <div class="space-y-4 text-xs">
-            <div class="p-4 rounded-xl bg-[#090D18] border border-slate-800/80 flex items-center justify-between">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                 <div>
-                  <div class="font-semibold text-white">PostgreSQL (Neon)</div>
-                  <div class="text-[10px] text-slate-400">Multi-tenant Schema</div>
+                  <div class="font-semibold text-slate-900 dark:text-white">PostgreSQL (Neon)</div>
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400">Multi-tenant Schema</div>
                 </div>
               </div>
-              <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                 Online
               </span>
             </div>
 
-            <div class="p-4 rounded-xl bg-[#090D18] border border-slate-800/80 flex items-center justify-between">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
                 <div>
-                  <div class="font-semibold text-white">Ollama IA</div>
-                  <div class="text-[10px] text-slate-400">gemma4 Local Engine</div>
+                  <div class="font-semibold text-slate-900 dark:text-white">Ollama IA</div>
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400">gemma4 Local Engine</div>
                 </div>
               </div>
-              <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
                 Conectado
               </span>
             </div>
 
-            <div class="p-4 rounded-xl bg-[#090D18] border border-slate-800/80 flex items-center justify-between">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
                 <div>
-                  <div class="font-semibold text-white">Resend E-mails</div>
-                  <div class="text-[10px] text-slate-400">Disparo de Faturas</div>
+                  <div class="font-semibold text-slate-900 dark:text-white">Resend E-mails</div>
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400">Disparo de Faturas</div>
                 </div>
               </div>
-              <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                 Configurado
               </span>
             </div>
@@ -168,7 +168,7 @@
 
           <a
             href="/control-plane/logs"
-            class="block w-full text-center py-2.5 px-4 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 rounded-xl transition-colors"
+            class="block w-full text-center py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 rounded-xl transition-colors cursor-pointer"
           >
             Acessar Console de Logs &rarr;
           </a>
@@ -200,17 +200,20 @@
       document.getElementById("metric-total-tenants").textContent = `de ${overview.totalTenants ?? 0} total`;
       document.getElementById("metric-suspended-tenants").textContent = overview.suspendedTenants ?? 0;
       document.getElementById("metric-total-users").textContent = overview.totalUsers ?? 0;
-      document.getElementById("metric-today-hours").textContent = (overview.todayHours ?? 0).toFixed(1);
-      document.getElementById("metric-total-entries").textContent = overview.totalTimeEntries ?? 0;
-      document.getElementById("metric-ai-reports").textContent = overview.aiReportsGenerated ?? 0;
 
-      const mrrValue = Number(financial.estimatedMrr || 0);
-      document.getElementById("metric-mrr").textContent = new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
+      const mrrValue = financial.estimatedMRR || 0;
+      document.getElementById("metric-mrr").textContent = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
       }).format(mrrValue);
 
-      renderPlanDistribution(financial.distributionByPlan || [], overview.totalTenants || 1);
+      document.getElementById("metric-today-hours").textContent = (overview.hoursTrackedToday ?? 0).toFixed(1);
+      document.getElementById("metric-total-entries").textContent = overview.totalTimeEntries ?? 0;
+
+      const ai = result.data?.aiUsage || {};
+      document.getElementById("metric-ai-reports").textContent = ai.reportsGenerated ?? 0;
+
+      renderPlansDistribution(financial.tenantsByPlan || [], overview.totalTenants || 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -218,12 +221,12 @@
     }
   }
 
-  function renderPlanDistribution(plans, total) {
+  function renderPlansDistribution(plans, total) {
     const container = document.getElementById("plans-distribution-container");
     if (!container) return;
 
-    if (!plans.length) {
-      container.innerHTML = '<div class="text-xs text-slate-400">Nenhum dado de planos encontrado.</div>';
+    if (!plans || !plans.length) {
+      container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">Nenhum dado de planos disponível.</div>';
       return;
     }
 
@@ -248,10 +251,10 @@
       return `
         <div class="space-y-1.5">
           <div class="flex items-center justify-between text-xs">
-            <span class="font-medium text-slate-200">${name}</span>
-            <span class="text-slate-400 font-mono">${count} tenants (${pct}%)</span>
+            <span class="font-medium text-slate-800 dark:text-slate-200">${name}</span>
+            <span class="text-slate-500 dark:text-slate-400 font-mono">${count} tenants (${pct}%)</span>
           </div>
-          <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+          <div class="w-full h-2 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
             <div class="h-full ${color} rounded-full transition-all duration-500" style="width: ${pct}%"></div>
           </div>
         </div>
