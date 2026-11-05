@@ -6,7 +6,7 @@
   }
 %>
 
-<div class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100">
+<div class="flex h-screen overflow-hidden bg-background text-foreground">
   <%- include('../partials/tenant-sidebar', { activeTab: 'team' }) %>
 
   <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
@@ -60,7 +60,7 @@
       <button
         type="button"
         onclick="openAddModal()"
-        class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-colors cursor-pointer self-start"
+        class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-xl bg-play hover:bg-play/90 text-white shadow-sm transition-colors cursor-pointer self-start"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -79,25 +79,25 @@
     const avgRate = totalMembers > 0 ? (sumRates / totalMembers).toFixed(2) : "0.00";
   %>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+    <div class="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
       <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total no Workspace</div>
       <div class="text-2xl font-bold text-slate-900 dark:text-white"><%= totalMembers %></div>
       <div class="text-[11px] text-slate-400">Pessoas com acesso ativo</div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+    <div class="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
       <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Gestores (Owner / Manager)</div>
       <div class="text-2xl font-bold text-blue-600 dark:text-blue-400"><%= managersCount %></div>
       <div class="text-[11px] text-slate-400">Administram equipes e projetos</div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+    <div class="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
       <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Colaboradores (Membros)</div>
       <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400"><%= standardMembersCount %></div>
       <div class="text-[11px] text-slate-400">Rastreiam tempo em tarefas</div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+    <div class="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
       <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Valor Médio da Hora</div>
       <div class="text-2xl font-bold text-slate-900 dark:text-white">R$ <%= avgRate %></div>
       <div class="text-[11px] text-slate-400">Taxa média da equipe</div>
@@ -105,10 +105,10 @@
   </div>
 
   <!-- Members Table -->
-  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
     <div class="overflow-x-auto">
       <table class="w-full text-left text-xs">
-        <thead class="bg-slate-50 dark:bg-[#0F172A] border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+        <thead class="bg-slate-50 dark:bg-background border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
           <tr>
             <th class="px-6 py-3.5">Membro</th>
             <th class="px-6 py-3.5">E-mail</th>
@@ -211,7 +211,7 @@
 <% if (typeof user !== 'undefined' && user && (user.role === 'OWNER' || user.role === 'MANAGER' || user.role === 'SUPER_ADMIN')) { %>
 <!-- Modal Convidar / Adicionar Membro -->
 <div id="modal-add-member" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 text-xs shadow-2xl">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 text-xs shadow-2xl">
     <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
       <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
@@ -238,7 +238,7 @@
           name="name"
           required
           placeholder="Ex: Mariana Costa"
-          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
@@ -250,7 +250,7 @@
           name="email"
           required
           placeholder="Ex: mariana@empresa.com"
-          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
@@ -263,7 +263,7 @@
           required
           minlength="6"
           placeholder="••••••••"
-          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
@@ -273,7 +273,7 @@
           <select
             id="add-role"
             name="role"
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
           >
             <option value="MEMBER">Colaborador (Member)</option>
             <option value="MANAGER">Gestor (Manager)</option>
@@ -289,7 +289,7 @@
             id="add-rate"
             name="hourlyRate"
             placeholder="0.00"
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
       </div>
@@ -305,7 +305,7 @@
         <button
           type="submit"
           id="btn-add-submit"
-          class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors cursor-pointer shadow-sm"
+          class="px-4 py-2 rounded-xl bg-play hover:bg-play/90 text-white font-semibold transition-colors cursor-pointer shadow-sm"
         >
           Convidar Membro
         </button>
@@ -316,7 +316,7 @@
 
 <!-- Modal Editar Membro -->
 <div id="modal-edit-member" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 text-xs shadow-2xl">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 text-xs shadow-2xl">
     <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
       <div>
         <h3 class="text-sm font-bold text-slate-900 dark:text-white">Editar Dados do Membro</h3>
@@ -337,7 +337,7 @@
           id="edit-name"
           name="name"
           required
-          class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
@@ -347,7 +347,7 @@
           <select
             id="edit-role"
             name="role"
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
           >
             <option value="MEMBER">Colaborador (Member)</option>
             <option value="MANAGER">Gestor (Manager)</option>
@@ -362,7 +362,7 @@
             min="0"
             id="edit-rate"
             name="hourlyRate"
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
       </div>
@@ -378,7 +378,7 @@
         <button
           type="submit"
           id="btn-edit-submit"
-          class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors cursor-pointer shadow-sm"
+          class="px-4 py-2 rounded-xl bg-play hover:bg-play/90 text-white font-semibold transition-colors cursor-pointer shadow-sm"
         >
           Salvar Alterações
         </button>
@@ -389,7 +389,7 @@
 
 <!-- Modal Remover Membro -->
 <div id="modal-delete-member" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-[#1E293B] border border-red-200 dark:border-red-900/40 rounded-2xl max-w-md w-full p-6 space-y-4 text-xs shadow-2xl">
+  <div class="bg-card border border-red-200 dark:border-red-900/40 rounded-2xl max-w-md w-full p-6 space-y-4 text-xs shadow-2xl">
     <div class="flex items-center gap-3 text-red-500">
       <div class="p-2 bg-red-500/10 rounded-xl border border-red-500/20">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

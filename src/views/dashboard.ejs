@@ -6,7 +6,7 @@
   }
 %>
 
-<div class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100">
+<div class="flex h-screen overflow-hidden bg-background text-foreground">
   <%- include('partials/tenant-sidebar', { activeTab: 'dashboard' }) %>
 
   <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
@@ -61,7 +61,7 @@
           <button
             type="button"
             onclick="openManualModal()"
-            class="px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+            class="px-3.5 py-2 text-xs font-semibold text-white bg-play hover:bg-play/90 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -74,7 +74,7 @@
       <!-- Operational Metrics Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Horas Hoje -->
-        <div class="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
+        <div class="p-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span class="text-xs font-medium">Horas Hoje</span>
             <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
@@ -93,7 +93,7 @@
         </div>
 
         <!-- Aproveitamento Faturável -->
-        <div class="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
+        <div class="p-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span class="text-xs font-medium">Faturamento Estimado</span>
             <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
@@ -111,7 +111,7 @@
         </div>
 
         <!-- Sessões de Foco / Apontamentos -->
-        <div class="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-colors">
+        <div class="p-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-colors">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span class="text-xs font-medium">Sessões Realizadas</span>
             <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
@@ -129,7 +129,7 @@
         </div>
 
         <!-- Projetos Vinculados -->
-        <div class="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-purple-500/30 transition-colors">
+        <div class="p-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-purple-500/30 transition-colors">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span class="text-xs font-medium">Projetos Ativos</span>
             <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
@@ -148,7 +148,7 @@
       </div>
 
       <!-- Feed de Apontamentos Recentes (DataTable) -->
-      <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm space-y-4 p-6">
+      <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm space-y-4 p-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Feed de Atividades do Dia</h3>
@@ -168,7 +168,7 @@
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 dark:bg-[#1E293B]/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+            <thead class="bg-slate-50 dark:bg-background/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
               <tr>
                 <th class="px-4 py-3">Atividade / Descrição</th>
                 <th class="px-4 py-3">Projeto</th>
@@ -180,7 +180,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
-              <% if (!timeEntries || timeEntries.length === 0) { %>
+              <% if (typeof timeEntries === 'undefined' || !timeEntries || timeEntries.length === 0) { %>
                 <tr>
                   <td colspan="7" class="px-4 py-12 text-center text-slate-400">
                     <div class="flex flex-col items-center justify-center space-y-2">
@@ -280,7 +280,7 @@
 
 <!-- Modal 1: Adicionar Apontamento Manual -->
 <div id="modal-manual" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
@@ -301,7 +301,7 @@
           name="description"
           placeholder="Ex: Reunião de alinhamento com cliente"
           required
-          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
@@ -310,7 +310,7 @@
           <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Projeto</label>
           <select
             name="projectId"
-            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">Sem projeto</option>
             <% if (projects && projects.length > 0) { %>
@@ -325,7 +325,7 @@
           <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tarefa</label>
           <select
             name="taskId"
-            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">Sem tarefa</option>
             <% if (tasks && tasks.length > 0) { %>
@@ -345,7 +345,7 @@
             name="start"
             id="manual-start"
             required
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
         </div>
         <div>
@@ -355,7 +355,7 @@
             name="end"
             id="manual-end"
             required
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
         </div>
       </div>
@@ -377,7 +377,7 @@
         </button>
         <button
           type="submit"
-          class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
+          class="px-4 py-2 text-xs font-bold text-white bg-play hover:bg-play/90 rounded-xl transition-colors shadow-sm"
         >
           Salvar Apontamento
         </button>
@@ -388,7 +388,7 @@
 
 <!-- Modal 2: Editar Apontamento -->
 <div id="modal-edit" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
@@ -409,7 +409,7 @@
           id="edit-description"
           name="description"
           required
-          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
@@ -419,7 +419,7 @@
           <select
             id="edit-project"
             name="projectId"
-            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">Sem projeto</option>
             <% if (projects && projects.length > 0) { %>
@@ -435,7 +435,7 @@
           <select
             id="edit-task"
             name="taskId"
-            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">Sem tarefa</option>
             <% if (tasks && tasks.length > 0) { %>
@@ -454,7 +454,7 @@
             type="datetime-local"
             name="start"
             id="edit-start"
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
         </div>
         <div>
@@ -463,7 +463,7 @@
             type="datetime-local"
             name="end"
             id="edit-end"
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
         </div>
       </div>
@@ -485,7 +485,7 @@
         </button>
         <button
           type="submit"
-          class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm"
+          class="px-4 py-2 text-xs font-bold text-white bg-play hover:bg-play/90 rounded-xl transition-colors shadow-sm"
         >
           Salvar Alterações
         </button>

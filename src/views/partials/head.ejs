@@ -11,7 +11,45 @@
     } else {
       document.documentElement.classList.add('dark');
     }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('trackflow-theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('trackflow-theme', 'dark');
+      }
+    }
   </script>
+
+  <!-- Tema Original do TrackFlow (Variáveis CSS HSL Base) -->
+  <style>
+    :root {
+      /* Tema Claro Original do TrackFlow */
+      --background: 210 40% 96%; /* #F1F5F9 */
+      --foreground: 222.2 47.4% 11.2%; /* #0F172A */
+      --card: 0 0% 100%; /* #FFFFFF */
+      --play: 161 94% 30%; /* #059669 */
+      --stop: 0 72% 51%; /* #DC2626 */
+    }
+
+    .dark {
+      /* Tema Escuro Original do TrackFlow */
+      --background: 222.2 47.4% 11.2%; /* #0F172A */
+      --foreground: 210 40% 98%; /* #F8FAFC */
+      --card: 215 27.9% 16.9%; /* #1E293B */
+      --play: 160 84% 39%; /* #10B981 */
+      --stop: 0 84% 60%; /* #EF4444 */
+    }
+
+    body {
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -20,8 +58,24 @@
       theme: {
         extend: {
           colors: {
-            'play-color': '#10B981',
-            'stop-color': '#EF4444',
+            background: 'hsl(var(--background) / <alpha-value>)',
+            foreground: 'hsl(var(--foreground) / <alpha-value>)',
+            card: {
+              DEFAULT: 'hsl(var(--card) / <alpha-value>)',
+              foreground: 'hsl(var(--foreground) / <alpha-value>)'
+            },
+            play: {
+              DEFAULT: 'hsl(var(--play) / <alpha-value>)',
+              hover: 'hsl(var(--play) / 0.9)',
+              foreground: '#FFFFFF'
+            },
+            stop: {
+              DEFAULT: 'hsl(var(--stop) / <alpha-value>)',
+              hover: 'hsl(var(--stop) / 0.9)',
+              foreground: '#FFFFFF'
+            },
+            'play-color': 'hsl(var(--play) / <alpha-value>)',
+            'stop-color': 'hsl(var(--stop) / <alpha-value>)',
             dark: {
               bg: '#0F172A',
               card: '#1E293B',
@@ -38,14 +92,30 @@
     }
   </script>
 
+  <style type="text/tailwindcss">
+    @layer base {
+      :root {
+        /* Tema Claro Original do TrackFlow */
+        --background: 210 40% 96%; /* #F1F5F9 */
+        --foreground: 222.2 47.4% 11.2%; /* #0F172A */
+        --card: 0 0% 100%; /* #FFFFFF */
+        --play: 161 94% 30%; /* #059669 */
+        --stop: 0 72% 51%; /* #DC2626 */
+      }
+
+      .dark {
+        /* Tema Escuro Original do TrackFlow */
+        --background: 222.2 47.4% 11.2%; /* #0F172A */
+        --foreground: 210 40% 98%; /* #F8FAFC */
+        --card: 215 27.9% 16.9%; /* #1E293B */
+        --play: 160 84% 39%; /* #10B981 */
+        --stop: 0 84% 60%; /* #EF4444 */
+      }
+    }
+  </style>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-  </style>
 </head>
-<body class="min-h-full flex flex-col bg-slate-100 text-slate-900 dark:bg-[#0F172A] dark:text-[#F8FAFC] transition-colors">
+<body class="min-h-full flex flex-col bg-background text-foreground transition-colors">

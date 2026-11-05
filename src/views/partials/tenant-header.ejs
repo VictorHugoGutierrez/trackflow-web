@@ -1,5 +1,5 @@
 <!-- Fixed Top Header with Immortal Timer -->
-<header class="w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur sticky top-0 z-20">
+<header class="w-full border-b border-slate-200 dark:border-slate-800 bg-card/90 backdrop-blur sticky top-0 z-20">
   <div class="px-4 lg:px-6 h-16 flex items-center justify-between gap-3">
     
     <!-- Left: Mobile Menu Toggle & Workspace Breadcrumb -->
@@ -75,7 +75,7 @@
         type="button"
         id="global-timer-btn"
         onclick="toggleGlobalTimer()"
-        class="h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 active:scale-95"
+        class="h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-play hover:bg-play/90 text-white shadow-play/20 active:scale-95"
       >
         <svg id="global-timer-play-icon" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z" />
@@ -194,7 +194,7 @@
       if (descEl && desc) descEl.value = desc;
       if (projectEl && projId) projectEl.value = projId;
 
-      btnEl.className = 'h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-red-500 hover:bg-red-600 text-white shadow-red-500/20 active:scale-95 animate-pulse';
+      btnEl.className = 'h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-stop hover:bg-stop/90 text-white shadow-stop/20 active:scale-95 animate-pulse';
       btnTextEl.textContent = 'Parar';
       playIconEl.classList.add('hidden');
       stopIconEl.classList.remove('hidden');
@@ -227,7 +227,7 @@
       if (timerInterval) clearInterval(timerInterval);
       clockEl.textContent = '00:00:00';
 
-      btnEl.className = 'h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 active:scale-95';
+      btnEl.className = 'h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-play hover:bg-play/90 text-white shadow-play/20 active:scale-95';
       btnTextEl.textContent = 'Iniciar';
       playIconEl.classList.remove('hidden');
       stopIconEl.classList.add('hidden');
