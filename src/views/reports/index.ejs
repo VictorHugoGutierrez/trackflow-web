@@ -1,11 +1,9 @@
 <%- include('../partials/head') %>
 
 <%
-  function esc(str) {
-    return (str || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
-  }
   const curMonth = (typeof selectedMonth !== 'undefined' && selectedMonth) ? selectedMonth : new Date().toISOString().slice(0, 7);
   const curClientId = (typeof selectedClientId !== 'undefined') ? selectedClientId : '';
+  const curProjectId = (typeof selectedProjectId !== 'undefined') ? selectedProjectId : '';
 %>
 
 <div class="flex h-screen overflow-hidden bg-background text-foreground">
@@ -17,7 +15,7 @@
     <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
       <!-- Feedback Messages -->
       <% if (typeof success !== 'undefined' && success) { %>
-        <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+        <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2">
             <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -29,7 +27,7 @@
       <% } %>
 
       <% if (typeof error !== 'undefined' && error) { %>
-        <div class="p-4 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
+        <div class="p-4 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2">
             <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" stroke-width="2"/>
@@ -45,34 +43,39 @@
       <!-- Top Section: Header & Filters -->
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-            <span>Relatórios & Faturamento</span>
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-2.5">
+            <span>IA, Relatórios & Faturamento</span>
+            <span class="px-2.5 py-0.5 text-[10px] font-mono font-semibold uppercase rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+              Ollama Cloud • gpt-oss:120b
+            </span>
           </h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Apuração mensal de horas faturáveis, resumos automáticos com IA (Ollama) e emissão de faturas
+            Apuração consolidada por projeto, insights executivos com IA e faturamento automatizado via Resend
           </p>
         </div>
 
-        <!-- Filter Form -->
-        <form method="GET" action="/reports" class="flex flex-wrap items-center gap-2.5">
+        <!-- Filter Form (GET /reports -> GET /api/reports/summary) -->
+        <form method="GET" action="/reports" class="flex flex-wrap items-center gap-2">
           <div>
             <input
               type="month"
               name="month"
+              id="filter-month"
               value="<%= curMonth %>"
-              class="px-3 py-1.5 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
+              class="px-3 py-1.5 bg-card border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
             />
           </div>
 
           <div>
             <select
               name="clientId"
-              class="px-3 py-1.5 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              id="filter-client"
+              class="px-3 py-1.5 bg-card border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
               <option value="">Todos os clientes</option>
               <% if (clients && clients.length > 0) { %>
                 <% clients.forEach(function(c) { %>
-                  <option value="<%= c.id %>" <%= curClientId === c.id ? 'selected' : '' %>>
+                  <option value="<%= c.id %>" data-email="<%= c.contact || '' %>" <%= curClientId === c.id ? 'selected' : '' %>>
                     <%= c.name %>
                   </option>
                 <% }); %>
@@ -80,37 +83,74 @@
             </select>
           </div>
 
+          <div>
+            <select
+              name="projectId"
+              id="filter-project"
+              class="px-3 py-1.5 bg-card border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              <option value="">Todos os projetos</option>
+              <% if (typeof projects !== 'undefined' && projects && projects.length > 0) { %>
+                <% projects.forEach(function(p) { %>
+                  <% if (!curClientId || p.clientId === curClientId) { %>
+                    <option value="<%= p.id %>" <%= curProjectId === p.id ? 'selected' : '' %>>
+                      <%= p.name %>
+                    </option>
+                  <% } %>
+                <% }); %>
+              <% } %>
+            </select>
+          </div>
+
           <button
             type="submit"
-            class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold transition-colors border border-slate-200 dark:border-slate-700"
+            class="px-3.5 py-1.5 bg-play hover:bg-play/90 text-white rounded-xl text-xs font-semibold transition-colors shadow-sm cursor-pointer"
           >
-            Filtrar
+            Filtrar Período
           </button>
+
+          <% if (curClientId || curProjectId) { %>
+            <a
+              href="/reports?month=<%= curMonth %>"
+              class="px-2.5 py-1.5 bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs transition-colors"
+            >
+              Limpar
+            </a>
+          <% } %>
         </form>
       </div>
 
-      <!-- Hero Card: Painel de Cálculo Financeiro -->
+      <!-- Hero Card: Painel de Cálculo Financeiro & IA -->
       <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm relative overflow-hidden">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100 dark:border-slate-800/80">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-100 dark:border-slate-800/80">
           <!-- Calculation Equation Display -->
-          <div class="space-y-1">
-            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Cálculo Financeiro do Período</span>
-            <div class="flex flex-wrap items-baseline gap-2 text-slate-900 dark:text-white">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+                Resumo Financeiro Consolidado (<%= curMonth %>)
+              </span>
+              <span class="px-2 py-0.5 text-[10px] font-mono rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                GET /api/reports/summary
+              </span>
+            </div>
+
+            <div class="flex flex-wrap items-baseline gap-2.5 text-slate-900 dark:text-white">
               <span class="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
                 <%= formatCurrencyCents(totalAmountCents) %>
               </span>
-              <span class="text-xs text-slate-400 font-mono">
-                (<%= formatDuration(totalBillableSeconds) %> faturáveis &times; <%= formatCurrencyCents(hourlyRateCents) %>/h)
+              <span class="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                (<%= formatDuration(totalBillableSeconds) %> faturáveis de <%= formatDuration(totalSeconds) %> totais &times; <%= formatCurrencyCents(hourlyRateCents) %>/h)
               </span>
             </div>
+
             <p class="text-xs text-slate-500 dark:text-slate-400">
-              Total apurado com base em <%= timeEntries.length %> apontamentos registrados no mês de <%= selectedMonth %>
+              Total apurado em <strong><%= timeEntries ? timeEntries.length : 0 %></strong> apontamentos e <strong><%= (typeof summaryProjects !== 'undefined' && summaryProjects) ? summaryProjects.length : 0 %></strong> projeto(s) ativo(s) no período.
             </p>
           </div>
 
-          <!-- Actions: IA Summary & Create Invoice -->
+          <!-- Actions: IA Insight & Create Invoice -->
           <div class="flex flex-wrap items-center gap-3">
-            <!-- Botão Gerar Resumo com IA -->
+            <!-- Botão 2: POST /api/reports/ai-insight -->
             <button
               type="button"
               id="btn-ai-summary"
@@ -121,10 +161,10 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span id="ai-btn-text">✨ Gerar Resumo com IA (Ollama)</span>
+              <span id="ai-btn-text">✨ Gerar Insight com IA (gpt-oss:120b)</span>
             </button>
 
-            <!-- Botão Emitir Fatura -->
+            <!-- Botão 3: POST /api/invoices/generate -->
             <button
               type="button"
               onclick="openInvoiceModal()"
@@ -138,24 +178,322 @@
           </div>
         </div>
 
-        <!-- AI Summary Live Preview Card (se gerado) -->
-        <div id="ai-summary-card" class="mt-4 p-4 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs hidden">
-          <div class="flex items-center justify-between pb-2 mb-2 border-b border-purple-500/10">
-            <span class="font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
-              <span>🤖 Resumo Executivo Gerado pela IA (gemma4)</span>
-            </span>
-            <button type="button" onclick="document.getElementById('ai-summary-card').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">&times;</button>
+        <!-- KPI Summary Mini-Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-5">
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-background/60 border border-slate-200/70 dark:border-slate-800">
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Tempo Total</span>
+            <span class="text-lg font-bold font-mono text-slate-900 dark:text-white"><%= formatDuration(totalSeconds) %></span>
           </div>
-          <div id="ai-summary-content" class="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap font-sans"></div>
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-background/60 border border-slate-200/70 dark:border-slate-800">
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Tempo Faturável</span>
+            <span class="text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400"><%= formatDuration(totalBillableSeconds) %></span>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-background/60 border border-slate-200/70 dark:border-slate-800">
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Taxa Horária Base</span>
+            <span class="text-lg font-bold font-mono text-slate-900 dark:text-white"><%= formatCurrencyCents(hourlyRateCents) %>/h</span>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-background/60 border border-slate-200/70 dark:border-slate-800">
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Faturas Emitidas</span>
+            <span class="text-lg font-bold font-mono text-slate-900 dark:text-white"><%= invoices ? invoices.length : 0 %></span>
+          </div>
+        </div>
+
+        <!-- AI Summary Live Preview Card (exibido ao chamar POST /api/reports/ai-insight) -->
+        <div id="ai-summary-card" class="mt-5 p-5 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs hidden">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-purple-500/15">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+                🤖 Insight Executivo Gerado por IA (Ollama Cloud • gpt-oss:120b)
+              </span>
+              <span id="ai-summary-meta" class="px-2 py-0.5 text-[10px] font-mono rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-300"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                onclick="copyAiSummary()"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 transition-colors cursor-pointer"
+              >
+                Copiar Texto
+              </button>
+              <button
+                type="button"
+                onclick="openInvoiceModal()"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-play hover:bg-play/90 text-white transition-colors cursor-pointer"
+              >
+                Usar na Fatura
+              </button>
+              <button
+                type="button"
+                onclick="document.getElementById('ai-summary-card').classList.add('hidden')"
+                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base leading-none px-1"
+              >&times;</button>
+            </div>
+          </div>
+          <div id="ai-summary-content" class="text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap font-sans text-xs"></div>
         </div>
       </div>
 
-      <!-- Table 1: Detalhamento de Horas no Período -->
+      <!-- Table 1: Resumo de Horas e Faturamento por Projeto (GET /api/reports/summary) -->
+      <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span>Resumo de Horas e Faturamento por Projeto</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono font-normal rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                Agrupado
+              </span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Consolidação de tempo total, faturável, orçamento/estimativa consumida e valor financeiro por projeto
+            </p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-background/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+              <tr>
+                <th class="px-4 py-3">Projeto</th>
+                <th class="px-4 py-3">Cliente</th>
+                <th class="px-4 py-3">Apontamentos</th>
+                <th class="px-4 py-3">Orçamento / Estimativa</th>
+                <th class="px-4 py-3">Tempo Total</th>
+                <th class="px-4 py-3">Tempo Faturável</th>
+                <th class="px-4 py-3 text-right">Valor Faturável</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <% if (typeof summaryProjects === 'undefined' || !summaryProjects || summaryProjects.length === 0) { %>
+                <tr>
+                  <td colspan="7" class="px-4 py-8 text-center text-slate-400">
+                    Nenhum projeto com tempo apontado para os filtros selecionados neste período.
+                  </td>
+                </tr>
+              <% } else { %>
+                <% summaryProjects.forEach(function(proj) { %>
+                  <%
+                    const projTotalSec = Number(proj.totalSeconds || 0);
+                    const projBillSec = Number(proj.billableSeconds ?? projTotalSec);
+                    const projAmountCents = Number(proj.amountCents ?? Math.round((proj.totalValue || 0) * 100));
+                    const estSec = proj.estimatedSeconds ? Number(proj.estimatedSeconds) : (proj.budgetHours ? Math.round(Number(proj.budgetHours) * 3600) : 0);
+                    const budgetCents = proj.budgetCents ? Number(proj.budgetCents) : 0;
+                    let pct = 0;
+                    let hasProgress = false;
+                    let progressLabel = '';
+                    if (budgetCents > 0) {
+                      hasProgress = true;
+                      pct = Math.min(100, Math.round((projAmountCents / budgetCents) * 100));
+                      progressLabel = `${formatCurrencyCents(projAmountCents)} / ${formatCurrencyCents(budgetCents)}`;
+                    } else if (estSec > 0) {
+                      hasProgress = true;
+                      pct = Math.min(100, Math.round((projTotalSec / estSec) * 100));
+                      progressLabel = `${formatDuration(projTotalSec)} / ${formatDuration(estSec)}`;
+                    }
+                  %>
+                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                    <td class="px-4 py-3.5 font-bold text-slate-900 dark:text-white">
+                      <%= proj.projectName || 'Sem projeto' %>
+                    </td>
+                    <td class="px-4 py-3.5 text-slate-600 dark:text-slate-300">
+                      <%= proj.clientName || 'Sem cliente' %>
+                    </td>
+                    <td class="px-4 py-3.5 font-mono text-slate-500 dark:text-slate-400">
+                      <%= proj.entriesCount %> reg.
+                    </td>
+                    <td class="px-4 py-3.5">
+                      <% if (hasProgress) { %>
+                        <div class="w-44 space-y-1">
+                          <div class="flex justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400 gap-2">
+                            <span class="truncate"><%= progressLabel %></span>
+                            <span><%= pct %>%</span>
+                          </div>
+                          <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                              class="h-full rounded-full <%= pct >= 100 ? 'bg-red-500' : (pct >= 80 ? 'bg-amber-500' : 'bg-emerald-500') %>"
+                              style="width: <%= pct %>%"
+                            ></div>
+                          </div>
+                        </div>
+                      <% } else { %>
+                        <span class="text-slate-400 font-mono text-[11px]">Livre</span>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3.5 font-mono font-semibold text-slate-700 dark:text-slate-200">
+                      <%= formatDuration(projTotalSec) %>
+                    </td>
+                    <td class="px-4 py-3.5 font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                      <%= formatDuration(projBillSec) %>
+                    </td>
+                    <td class="px-4 py-3.5 text-right font-mono font-bold text-slate-900 dark:text-white">
+                      <%= formatCurrencyCents(projAmountCents) %>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Table 2: Histórico de Faturas Emitidas (POST /api/invoices/generate, POST /send, PATCH /status) -->
+      <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Histórico de Faturas Emitidas</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Gerencie o status de pagamento (<code>pendente</code>, <code>pago</code>, <code>cancelado</code>), visualize o documento da fatura e envie por e-mail via Resend
+            </p>
+          </div>
+          <button
+            type="button"
+            onclick="openInvoiceModal()"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors cursor-pointer self-start sm:self-auto"
+          >
+            + Nova Fatura
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-background/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+              <tr>
+                <th class="px-4 py-3">Cliente</th>
+                <th class="px-4 py-3">Mês / Ref</th>
+                <th class="px-4 py-3">Tempo Apurado</th>
+                <th class="px-4 py-3">Valor Total</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Emissão / Pagamento</th>
+                <th class="px-4 py-3 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <% if (!invoices || invoices.length === 0) { %>
+                <tr>
+                  <td colspan="7" class="px-4 py-10 text-center text-slate-400">
+                    Nenhuma fatura emitida ainda. Clique em <strong>Gerar e Enviar Fatura</strong> acima para faturar seu primeiro cliente.
+                  </td>
+                </tr>
+              <% } else { %>
+                <% invoices.forEach(function(inv) { %>
+                  <%
+                    const invDurSeconds = inv.durationSeconds !== undefined && inv.durationSeconds !== null
+                      ? Number(inv.durationSeconds)
+                      : Math.round((Number(inv.totalHours) || 0) * 3600);
+                    const invAmountCents = inv.amountCents !== undefined && inv.amountCents !== null
+                      ? Number(inv.amountCents)
+                      : Math.round((Number(inv.totalValue) || 0) * 100);
+                  %>
+                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                    <td class="px-4 py-3.5">
+                      <div class="font-bold text-slate-900 dark:text-white">
+                        <%= inv.client ? inv.client.name : 'Cliente' %>
+                      </div>
+                      <% if (inv.client && inv.client.contact) { %>
+                        <div class="text-[11px] text-slate-400 font-mono"><%= inv.client.contact %></div>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3.5 font-mono text-slate-600 dark:text-slate-300">
+                      <%= inv.monthRef %>
+                    </td>
+                    <td class="px-4 py-3.5 font-mono">
+                      <%= formatDuration(invDurSeconds) %>
+                    </td>
+                    <td class="px-4 py-3.5 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      <%= formatCurrencyCents(invAmountCents) %>
+                    </td>
+                    <td class="px-4 py-3.5">
+                      <% if (inv.status === 'pago') { %>
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          ● Pago
+                        </span>
+                      <% } else if (inv.status === 'cancelado') { %>
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+                          ● Cancelado
+                        </span>
+                      <% } else { %>
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                          ● Pendente
+                        </span>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3.5 text-slate-400 font-mono text-[11px]">
+                      <div>Emitida: <%= new Date(inv.createdAt).toLocaleDateString('pt-BR') %></div>
+                      <% if (inv.paidAt) { %>
+                        <div class="text-emerald-500">Pago em: <%= new Date(inv.paidAt).toLocaleDateString('pt-BR') %></div>
+                      <% } %>
+                    </td>
+                    <td class="px-4 py-3.5 text-right">
+                      <div class="flex flex-wrap items-center justify-end gap-1.5">
+                        <!-- Ver Documento PDF/HTML (pdfUrl) -->
+                        <% if (inv.pdfUrl) { %>
+                          <button
+                            type="button"
+                            data-pdf="<%= inv.pdfUrl %>"
+                            data-client="<%= inv.client ? inv.client.name : 'Cliente' %>"
+                            data-month="<%= inv.monthRef %>"
+                            onclick="openPdfPreviewModal(this)"
+                            class="px-2.5 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+                            title="Visualizar Documento da Fatura"
+                          >
+                            📄 Fatura
+                          </button>
+                        <% } %>
+
+                        <!-- Ver Resumo IA -->
+                        <% if (inv.aiSummary) { %>
+                          <button
+                            type="button"
+                            data-summary="<%= encodeURIComponent(inv.aiSummary) %>"
+                            data-client="<%= inv.client ? inv.client.name : 'Cliente' %>"
+                            data-month="<%= inv.monthRef %>"
+                            onclick="openAiSummaryModalFromBtn(this)"
+                            class="px-2.5 py-1 text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors border border-purple-500/20 cursor-pointer"
+                            title="Ver Resumo Executivo Gerado pela IA"
+                          >
+                            🤖 Resumo IA
+                          </button>
+                        <% } %>
+
+                        <!-- Enviar por E-mail via Resend (POST /api/invoices/:id/send) -->
+                        <button
+                          type="button"
+                          data-id="<%= inv.id %>"
+                          data-client="<%= inv.client ? inv.client.name : 'Cliente' %>"
+                          data-email="<%= (inv.client && inv.client.contact && inv.client.contact.includes('@')) ? inv.client.contact : 'hugovictorgutierrez@gmail.com' %>"
+                          data-month="<%= inv.monthRef %>"
+                          onclick="openSendInvoiceModal(this)"
+                          class="px-2.5 py-1 text-[11px] font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-500/10 rounded-lg transition-colors border border-sky-500/20 cursor-pointer"
+                          title="Disparar Fatura por E-mail (Resend)"
+                        >
+                          ✉️ Enviar E-mail
+                        </button>
+
+                        <!-- Alterar Status (PATCH /api/invoices/:id/status) -->
+                        <select
+                          aria-label="Alterar status da fatura"
+                          onchange="changeInvoiceStatus('<%= inv.id %>', this.value)"
+                          class="px-2 py-1 text-[11px] font-semibold bg-card border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                        >
+                          <option value="pendente" <%= inv.status === 'pendente' ? 'selected' : '' %>>Pendente</option>
+                          <option value="pago" <%= inv.status === 'pago' ? 'selected' : '' %>>Pago</option>
+                          <option value="cancelado" <%= inv.status === 'cancelado' ? 'selected' : '' %>>Cancelado</option>
+                        </select>
+                      </div>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Table 3: Detalhamento de Atividades do Período (sem coluna Tarefa) -->
       <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Detalhamento de Atividades do Período</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sessões de tempo filtradas para conferência de faturamento</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sessões de tempo filtradas que compõem a base do relatório e do insight de IA</p>
           </div>
           <div class="text-xs font-mono text-slate-500 dark:text-slate-400">
             Total: <strong><%= formatDuration(totalSeconds) %></strong> (Faturável: <strong><%= formatDuration(totalBillableSeconds) %></strong>)
@@ -167,7 +505,7 @@
             <thead class="bg-slate-50 dark:bg-background/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
               <tr>
                 <th class="px-4 py-3">Data</th>
-                <th class="px-4 py-3">Projeto / Cliente</th>
+                <th class="px-4 py-3">Projeto</th>
                 <th class="px-4 py-3">Descrição da Atividade</th>
                 <th class="px-4 py-3">Duração</th>
                 <th class="px-4 py-3">Faturável</th>
@@ -184,9 +522,13 @@
               <% } else { %>
                 <% timeEntries.forEach(function(entry) { %>
                   <%
-                    const durSeconds = entry.durationSeconds || 0;
+                    const durSeconds = Number(entry.durationSeconds ?? entry.duration ?? 0);
                     const dateFormatted = entry.start ? new Date(entry.start).toLocaleDateString('pt-BR') : '-';
-                    const estimatedCents = entry.billable ? calculateAmountCents(durSeconds, hourlyRateCents) : 0;
+                    const estimatedCents = entry.billable
+                      ? ((entry.amountCents !== undefined && entry.amountCents !== null && Number(entry.amountCents) > 0)
+                          ? Number(entry.amountCents)
+                          : calculateAmountCents(durSeconds, hourlyRateCents))
+                      : 0;
                   %>
                   <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                     <td class="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
@@ -224,130 +566,46 @@
           </table>
         </div>
       </div>
-
-      <!-- Table 2: Histórico de Faturas Emitidas -->
-      <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
-          <div>
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Histórico de Faturas Emitidas</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Acompanhamento de status de faturamento e recebíveis B2B</p>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 dark:bg-background/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
-              <tr>
-                <th class="px-4 py-3">Cliente</th>
-                <th class="px-4 py-3">Mês / Ref</th>
-                <th class="px-4 py-3">Tempo Apurado</th>
-                <th class="px-4 py-3">Valor Total</th>
-                <th class="px-4 py-3">Status</th>
-                <th class="px-4 py-3">Data Emissão</th>
-                <th class="px-4 py-3 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
-              <% if (!invoices || invoices.length === 0) { %>
-                <tr>
-                  <td colspan="7" class="px-4 py-10 text-center text-slate-400">
-                    Nenhuma fatura emitida ainda. Clique em <strong>Gerar e Enviar Fatura</strong> acima para faturar seu primeiro cliente.
-                  </td>
-                </tr>
-              <% } else { %>
-                <% invoices.forEach(function(inv) { %>
-                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                    <td class="px-4 py-3.5 font-bold text-slate-900 dark:text-white">
-                      <%= inv.client ? inv.client.name : 'Cliente' %>
-                    </td>
-                    <td class="px-4 py-3.5 font-mono text-slate-600 dark:text-slate-300">
-                      <%= inv.monthRef %>
-                    </td>
-                    <td class="px-4 py-3.5 font-mono">
-                      <%= formatDuration(inv.durationSeconds) %>
-                    </td>
-                    <td class="px-4 py-3.5 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                      <%= formatCurrencyCents(inv.amountCents) %>
-                    </td>
-                    <td class="px-4 py-3.5">
-                      <% if (inv.status === 'pago') { %>
-                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                          Pago
-                        </span>
-                      <% } else if (inv.status === 'cancelado') { %>
-                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-                          Cancelado
-                        </span>
-                      <% } else { %>
-                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                          Pendente
-                        </span>
-                      <% } %>
-                    </td>
-                    <td class="px-4 py-3.5 text-slate-400 font-mono text-[11px]">
-                      <%= new Date(inv.createdAt).toLocaleDateString('pt-BR') %>
-                    </td>
-                    <td class="px-4 py-3.5 text-right space-x-1">
-                      <% if (inv.aiSummary) { %>
-                        <button
-                          type="button"
-                          onclick="viewAiSummary('<%= esc(inv.aiSummary) %>')"
-                          class="px-2 py-1 text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-colors border border-purple-500/20"
-                          title="Ver Resumo IA"
-                        >
-                          Ver Resumo
-                        </button>
-                      <% } %>
-
-                      <% if (inv.status === 'pendente') { %>
-                        <button
-                          type="button"
-                          onclick="markInvoicePaid('<%= inv.id %>')"
-                          class="px-2.5 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors border border-emerald-500/20"
-                        >
-                          Marcar como Pago
-                        </button>
-                      <% } %>
-                    </td>
-                  </tr>
-                <% }); %>
-              <% } %>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </main>
   </div>
 </div>
 
-<!-- MODAL: Gerar e Enviar Fatura -->
+<!-- MODAL 1: Gerar e Enviar Fatura (POST /api/invoices/generate) -->
 <div id="modal-invoice" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
-  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto animate-scale-in">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
         </div>
-        <h3 class="text-base font-bold text-slate-900 dark:text-white">Gerar Fatura do Período</h3>
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Gerar Fatura do Período</h3>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Emite a fatura com documento HTML/PDF e resumo executivo IA</p>
+        </div>
       </div>
-      <button type="button" onclick="closeInvoiceModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      <button type="button" onclick="closeInvoiceModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
     </div>
 
     <form action="/reports/invoices" method="POST" class="space-y-4">
+      <input type="hidden" name="hourlyRate" id="invoice-hourly-rate" value="<%= hourlyRate %>" />
+      <input type="hidden" name="durationSeconds" id="invoice-duration-seconds" value="<%= totalBillableSeconds %>" />
+      <input type="hidden" name="totalHours" id="invoice-total-hours" value="<%= totalBillableHours %>" />
+
       <div>
-        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cliente Faturável</label>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cliente Faturável *</label>
         <select
           name="clientId"
           id="invoice-client-select"
           required
+          onchange="onInvoiceClientOrMonthChange()"
           class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
         >
           <option value="">Selecione um cliente...</option>
           <% if (clients && clients.length > 0) { %>
             <% clients.forEach(function(c) { %>
-              <option value="<%= c.id %>" <%= selectedClientId === c.id ? 'selected' : '' %>>
+              <option value="<%= c.id %>" data-email="<%= c.contact || '' %>" <%= curClientId === c.id ? 'selected' : '' %>>
                 <%= c.name %>
               </option>
             <% }); %>
@@ -355,107 +613,332 @@
         </select>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-3 gap-3">
         <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Mês de Referência</label>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Mês Ref. *</label>
           <input
-            type="text"
+            type="month"
             name="monthRef"
-            value="<%= selectedMonth %>"
+            id="invoice-month-input"
+            value="<%= curMonth %>"
             required
+            onchange="onInvoiceClientOrMonthChange()"
             class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 font-mono"
           />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempo Faturável</label>
-          <input type="hidden" name="durationSeconds" value="<%= totalBillableSeconds %>" />
           <input
             type="text"
+            id="invoice-duration-display"
             value="<%= formatDuration(totalBillableSeconds) %>"
             readonly
             class="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-700 dark:text-slate-200 font-mono"
           />
         </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor Total (R$)</label>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            name="totalValue"
+            id="invoice-total-value"
+            value="<%= centsToReaisInput(totalAmountCents) %>"
+            required
+            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 font-mono font-bold text-emerald-600 dark:text-emerald-400"
+          />
+        </div>
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor Total (R$)</label>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          name="totalValue"
-          value="<%= centsToReaisInput(totalAmountCents) %>"
-          required
-          class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 font-mono font-bold"
-        />
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Resumo Executivo (IA / Discriminação)</label>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Resumo Executivo (IA / Discriminação)</label>
+          <button
+            type="button"
+            id="btn-modal-ai"
+            onclick="generateAiInsideModal()"
+            class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <span>✨ Gerar com Ollama Cloud agora</span>
+          </button>
+        </div>
         <textarea
           name="aiSummary"
           id="invoice-ai-summary"
           rows="4"
-          placeholder="O resumo executivo gerado pela IA aparecerá aqui..."
+          placeholder="Clique em 'Gerar com Ollama Cloud agora' ou marque a opção abaixo para gerar automaticamente ao emitir..."
           class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 font-sans"
         ></textarea>
+        <label class="flex items-center gap-2 mt-1.5 cursor-pointer select-none">
+          <input type="checkbox" name="generateAi" value="true" checked class="w-3.5 h-3.5 rounded text-purple-600 focus:ring-purple-500" />
+          <span class="text-[11px] text-slate-500 dark:text-slate-400">Gerar resumo executivo automaticamente via Ollama (<code>gpt-oss:120b</code>) caso o campo esteja em branco</span>
+        </label>
       </div>
 
-      <div class="p-3 bg-slate-50 dark:bg-background rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+      <div class="p-3.5 bg-slate-50 dark:bg-background rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
         <label class="flex items-center gap-2 cursor-pointer select-none">
-          <input type="checkbox" name="sendEmail" value="true" class="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500" />
-          <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Disparar e-mail com a fatura para o cliente (Resend)</span>
+          <input type="checkbox" name="sendEmail" id="invoice-send-email-check" value="true" class="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500" />
+          <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">Disparar fatura por e-mail imediatamente (via Resend)</span>
         </label>
         <input
           type="email"
           name="recipientEmail"
-          placeholder="E-mail de cobrança do destinatário"
-          class="w-full px-3 py-1.5 bg-card border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white"
+          id="invoice-recipient-email"
+          placeholder="E-mail do destinatário (padrão: contato do cliente ou hugovictorgutierrez@gmail.com)"
+          class="w-full px-3 py-2 bg-card border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white font-mono"
         />
       </div>
 
-      <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-        <button type="button" onclick="closeInvoiceModal()" class="px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
-        <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-play hover:bg-play/90 rounded-xl">Confirmar e Emitir Fatura</button>
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeInvoiceModal()" class="px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-play hover:bg-play/90 rounded-xl shadow-sm cursor-pointer">Confirmar e Emitir Fatura</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Form para Marcar como Pago -->
-<form id="form-mark-paid" method="POST" class="hidden">
-  <input type="hidden" name="status" value="pago" />
+<!-- MODAL 2: Disparar Fatura por E-mail via Resend (POST /api/invoices/:id/send) -->
+<div id="modal-send-email" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-500 flex items-center justify-center">
+          ✉️
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">Enviar Fatura por E-mail (Resend)</h3>
+          <p id="send-modal-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400"></p>
+        </div>
+      </div>
+      <button type="button" onclick="closeSendInvoiceModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+    </div>
+
+    <form id="form-send-invoice" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">E-mail do Destinatário (<code>to</code>)</label>
+        <input
+          type="email"
+          name="to"
+          id="send-invoice-to"
+          required
+          placeholder="cliente@empresa.com"
+          class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-mono"
+        />
+        <p class="text-[11px] text-slate-400 mt-1">Enviado via Resend (<code>onboarding@resend.dev</code>) com resumo da IA e discriminativo financeiro.</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Assunto do E-mail (Opcional)</label>
+        <input
+          type="text"
+          name="subject"
+          id="send-invoice-subject"
+          placeholder="Fatura TrackFlow - Referência Mensal"
+          class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
+        />
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeSendInvoiceModal()" class="px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-sm cursor-pointer">Disparar E-mail Agora</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL 3: Visualizar Resumo Executivo IA da Fatura -->
+<div id="modal-view-ai" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🤖</span>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">Resumo Executivo da Fatura (IA)</h3>
+          <p id="view-ai-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400"></p>
+        </div>
+      </div>
+      <button type="button" onclick="closeViewAiModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+    </div>
+    <div id="view-ai-body" class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200 whitespace-pre-wrap leading-relaxed max-h-80 overflow-y-auto"></div>
+    <div class="flex justify-end pt-2">
+      <button type="button" onclick="closeViewAiModal()" class="px-4 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl cursor-pointer">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 4: Visualizar Documento da Fatura (pdfUrl Base64 HTML) -->
+<div id="modal-view-pdf" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-3xl w-full p-5 shadow-2xl space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div>
+        <h3 id="view-pdf-title" class="text-sm font-bold text-slate-900 dark:text-white">Documento da Fatura</h3>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400">Gerado em <code>POST /api/invoices/generate</code></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          onclick="printInvoiceIframe()"
+          class="px-3 py-1.5 text-xs font-semibold bg-play hover:bg-play/90 text-white rounded-xl cursor-pointer"
+        >
+          🖨️ Imprimir / Salvar PDF
+        </button>
+        <button type="button" onclick="closePdfPreviewModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none px-1">&times;</button>
+      </div>
+    </div>
+    <div class="w-full h-[65vh] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white">
+      <iframe id="invoice-pdf-iframe" class="w-full h-full border-0" title="Preview da Fatura"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- Form Auxiliar para Alteração de Status (PATCH /reports/invoices/:id/status) -->
+<form id="form-status-update" method="POST" class="hidden">
+  <input type="hidden" name="status" id="form-status-input" value="pago" />
 </form>
 
 <script>
+  function formatDurationJs(seconds) {
+    const total = Math.max(0, Math.floor(Number(seconds) || 0));
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
+  }
+
   function openInvoiceModal() {
     document.getElementById('modal-invoice').classList.remove('hidden');
+    onInvoiceClientOrMonthChange();
   }
+
   function closeInvoiceModal() {
     document.getElementById('modal-invoice').classList.add('hidden');
   }
 
-  function markInvoicePaid(id) {
-    if (confirm('Deseja marcar esta fatura como paga?')) {
-      const form = document.getElementById('form-mark-paid');
-      form.action = `/reports/invoices/${id}/status`;
-      form.submit();
+  function openSendInvoiceModal(btn) {
+    const id = btn.getAttribute('data-id');
+    const clientName = btn.getAttribute('data-client') || 'Cliente';
+    const email = btn.getAttribute('data-email') || 'hugovictorgutierrez@gmail.com';
+    const monthRef = btn.getAttribute('data-month') || '';
+
+    const form = document.getElementById('form-send-invoice');
+    form.action = `/reports/invoices/${id}/send`;
+
+    document.getElementById('send-modal-subtitle').textContent = `${clientName} • Ref: ${monthRef}`;
+    document.getElementById('send-invoice-to').value = email;
+    document.getElementById('send-invoice-subject').value = `Fatura TrackFlow - ${clientName} (${monthRef})`;
+    document.getElementById('modal-send-email').classList.remove('hidden');
+  }
+
+  function closeSendInvoiceModal() {
+    document.getElementById('modal-send-email').classList.add('hidden');
+  }
+
+  function openAiSummaryModalFromBtn(btn) {
+    const summary = decodeURIComponent(btn.getAttribute('data-summary') || '');
+    const client = btn.getAttribute('data-client') || 'Cliente';
+    const month = btn.getAttribute('data-month') || '';
+    document.getElementById('view-ai-subtitle').textContent = `${client} • Competência ${month}`;
+    document.getElementById('view-ai-body').textContent = summary;
+    document.getElementById('modal-view-ai').classList.remove('hidden');
+  }
+
+  function closeViewAiModal() {
+    document.getElementById('modal-view-ai').classList.add('hidden');
+  }
+
+  function openPdfPreviewModal(btn) {
+    const pdfUrl = btn.getAttribute('data-pdf') || '';
+    const client = btn.getAttribute('data-client') || 'Cliente';
+    const month = btn.getAttribute('data-month') || '';
+    document.getElementById('view-pdf-title').textContent = `Fatura — ${client} (${month})`;
+    const iframe = document.getElementById('invoice-pdf-iframe');
+    iframe.src = pdfUrl;
+    document.getElementById('modal-view-pdf').classList.remove('hidden');
+  }
+
+  function closePdfPreviewModal() {
+    const iframe = document.getElementById('invoice-pdf-iframe');
+    iframe.src = 'about:blank';
+    document.getElementById('modal-view-pdf').classList.add('hidden');
+  }
+
+  function printInvoiceIframe() {
+    const iframe = document.getElementById('invoice-pdf-iframe');
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
     }
   }
 
-  function viewAiSummary(summaryText) {
-    alert(summaryText);
+  function copyAiSummary() {
+    const text = document.getElementById('ai-summary-content').textContent || '';
+    if (text && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+    }
   }
 
+  // 1. Consulta dinâmica a GET /api/reports/summary quando o cliente ou mês muda no modal de fatura
+  async function onInvoiceClientOrMonthChange() {
+    const select = document.getElementById('invoice-client-select');
+    const monthInput = document.getElementById('invoice-month-input');
+    const clientId = select ? select.value : '';
+    const month = monthInput ? monthInput.value : '<%= curMonth %>';
+
+    if (select && select.selectedIndex >= 0) {
+      const opt = select.options[select.selectedIndex];
+      const email = opt ? opt.getAttribute('data-email') : '';
+      const emailInput = document.getElementById('invoice-recipient-email');
+      if (emailInput && email && email.includes('@')) {
+        emailInput.value = email;
+      }
+    }
+
+    if (!clientId) return;
+
+    try {
+      const res = await fetch(`/api/reports/summary?clientId=${encodeURIComponent(clientId)}&month=${encodeURIComponent(month)}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const d = json.data;
+        const summarySeconds =
+          d.billableSeconds !== undefined
+            ? Number(d.billableSeconds)
+            : d.totalSeconds !== undefined
+              ? Number(d.totalSeconds)
+              : Math.round(Number(d.billableHours ?? d.totalHours ?? 0) * 3600);
+        const summaryHours = Number((d.billableHours ?? d.totalHours ?? (summarySeconds / 3600)).toFixed(2));
+        const summaryReais =
+          d.amountCents !== undefined
+            ? (Number(d.amountCents) / 100).toFixed(2)
+            : Number(d.totalValue ?? 0).toFixed(2);
+
+        const durSecEl = document.getElementById('invoice-duration-seconds');
+        const hoursEl = document.getElementById('invoice-total-hours');
+        const durDispEl = document.getElementById('invoice-duration-display');
+        const valEl = document.getElementById('invoice-total-value');
+
+        if (durSecEl) durSecEl.value = summarySeconds;
+        if (hoursEl) hoursEl.value = summaryHours;
+        if (durDispEl) durDispEl.value = formatDurationJs(summarySeconds);
+        if (valEl) valEl.value = summaryReais;
+      }
+    } catch (err) {
+      console.warn('Não foi possível atualizar o cálculo dinâmico da fatura:', err);
+    }
+  }
+
+  // 2. Dispara POST /api/reports/ai-insight no Hero Card
   async function triggerAiSummary() {
-    const clientSelect = document.querySelector('select[name="clientId"]');
-    const clientId = clientSelect ? clientSelect.value : '';
+    const clientSelect = document.getElementById('filter-client');
+    const projectSelect = document.getElementById('filter-project');
+    const monthInput = document.getElementById('filter-month');
 
-    if (!clientId) {
-      alert('Selecione um cliente no filtro acima para gerar o resumo executivo com IA.');
-      return;
-    }
+    const clientId = clientSelect ? clientSelect.value : '';
+    const projectId = projectSelect ? projectSelect.value : '';
+    const monthRef = monthInput ? monthInput.value : '<%= curMonth %>';
 
     const btn = document.getElementById('btn-ai-summary');
     const icon = document.getElementById('ai-icon');
@@ -463,39 +946,122 @@
 
     btn.disabled = true;
     icon.classList.remove('hidden');
-    btnText.textContent = 'Processando com Ollama...';
+    btnText.textContent = 'Consultando Ollama Cloud (gpt-oss:120b)...';
 
     try {
-      const res = await fetch('/reports/ai-summary', {
+      const res = await fetch('/api/reports/ai-insight', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
-          clientId,
-          monthRef: '<%= selectedMonth %>'
+          clientId: clientId || undefined,
+          projectId: projectId || undefined,
+          monthRef,
+          startDate: '<%= startDate %>',
+          endDate: '<%= endDate %>'
         })
       });
 
       const json = await res.json();
       if (json.success && json.data) {
-        const summary = json.data.summary || json.data;
+        const summary = json.data.summary || json.data.insight || '';
+        const metaTime =
+          json.data.formattedDuration ||
+          (json.data.durationSeconds !== undefined
+            ? formatDurationJs(json.data.durationSeconds)
+            : `${json.data.totalHours ?? 0}h`);
+
         document.getElementById('ai-summary-content').textContent = summary;
+        document.getElementById('ai-summary-meta').textContent =
+          `${json.data.clientName || 'Todos os Clientes'} • ${metaTime} (${json.data.totalEntries ?? 0} apontamentos)`;
         document.getElementById('ai-summary-card').classList.remove('hidden');
-        document.getElementById('invoice-ai-summary').value = summary;
+        const modalTextarea = document.getElementById('invoice-ai-summary');
+        if (modalTextarea) modalTextarea.value = summary;
       } else {
-        alert(json.error?.message || 'Não foi possível gerar o resumo com IA.');
+        alert(json.error?.message || 'Não foi possível gerar o insight com IA.');
       }
     } catch (e) {
-      alert('Falha na comunicação com o serviço de IA.');
+      alert('Falha na comunicação com o serviço de IA (Ollama Cloud).');
     } finally {
       btn.disabled = false;
       icon.classList.add('hidden');
-      btnText.textContent = '✨ Gerar Resumo com IA (Ollama)';
+      btnText.textContent = '✨ Gerar Insight com IA (gpt-oss:120b)';
+    }
+  }
+
+  // Dispara POST /api/reports/ai-insight direto de dentro do Modal de Fatura
+  async function generateAiInsideModal() {
+    const clientSelect = document.getElementById('invoice-client-select');
+    const monthInput = document.getElementById('invoice-month-input');
+    const btn = document.getElementById('btn-modal-ai');
+    const textarea = document.getElementById('invoice-ai-summary');
+
+    const clientId = clientSelect ? clientSelect.value : '';
+    const monthRef = monthInput ? monthInput.value : '<%= curMonth %>';
+
+    btn.disabled = true;
+    const originalText = btn.innerHTML;
+    btn.textContent = '⏳ Gerando com Ollama Cloud...';
+
+    try {
+      const res = await fetch('/api/reports/ai-insight', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          clientId: clientId || undefined,
+          monthRef
+        })
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        textarea.value = json.data.summary || json.data.insight || '';
+      } else {
+        alert(json.error?.message || 'Erro ao gerar resumo executivo com IA.');
+      }
+    } catch (err) {
+      alert('Erro ao conectar ao Ollama Cloud.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+
+  // 5. Atualiza status da fatura via PATCH /api/invoices/:id/status (ou fallback form POST)
+  async function changeInvoiceStatus(id, newStatus) {
+    try {
+      const res = await fetch(`/api/invoices/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const json = await res.json();
+      if (json.success) {
+        window.location.href = '/reports?success=Status+da+fatura+atualizado+para+' + encodeURIComponent(newStatus);
+        return;
+      }
+      alert(json.error?.message || 'Erro ao atualizar status da fatura.');
+    } catch (err) {
+      const form = document.getElementById('form-status-update');
+      document.getElementById('form-status-input').value = newStatus;
+      form.action = `/reports/invoices/${id}/status`;
+      form.submit();
     }
   }
 
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeInvoiceModal();
+      closeSendInvoiceModal();
+      closeViewAiModal();
+      closePdfPreviewModal();
     }
   });
 </script>

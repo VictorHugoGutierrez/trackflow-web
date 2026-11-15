@@ -21,6 +21,8 @@ const PROTECTED_PREFIXES = [
   "/projects",
   "/reports",
   "/settings",
+  "/api/reports",
+  "/api/invoices",
 ];
 
 export async function authMiddleware(
@@ -40,11 +42,18 @@ export async function authMiddleware(
   const isProtectedRoute = PROTECTED_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix)
   );
+  const isApiRoute = pathname.startsWith("/api/");
 
   const jwtSecret = process.env.JWT_SECRET || "";
 
   if (!token) {
     if (isProtectedRoute) {
+      if (isApiRoute) {
+        return res.status(401).json({
+          success: false,
+          error: { code: "UNAUTHORIZED", message: "Sessão expirada ou não autenticada." },
+        });
+      }
       return res.redirect("/");
     }
     return next();
@@ -95,6 +104,12 @@ export async function authMiddleware(
   } catch (error) {
     res.clearCookie("trackflow_session", { path: "/" });
     if (isProtectedRoute) {
+      if (isApiRoute) {
+        return res.status(401).json({
+          success: false,
+          error: { code: "INVALID_TOKEN", message: "Token inválido ou expirado." },
+        });
+      }
       return res.redirect("/");
     }
     return next();

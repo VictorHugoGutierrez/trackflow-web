@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import axios from "axios";
-import { calculateAmountCents, reaisToCents } from "../utils/formatters.js";
+import { calculateAmountCents, hoursToSeconds, reaisToCents } from "../utils/formatters.js";
 
 const API_URL = process.env.API_URL || "http://localhost:3333";
 
@@ -10,6 +10,8 @@ export interface Invoice {
   monthRef: string;
   durationSeconds: number;
   amountCents: number;
+  totalHours?: number;
+  totalValue?: number;
   status: "pendente" | "pago" | "cancelado";
   aiSummary?: string | null;
   pdfUrl?: string | null;
@@ -18,19 +20,62 @@ export interface Invoice {
   client?: { id: string; name: string; contact?: string | null } | null;
 }
 
+export interface ProjectReportSummary {
+  projectId: string | null;
+  projectName: string;
+  clientId: string | null;
+  clientName: string;
+  budgetHours: number | null;
+  budgetCents?: number | null;
+  estimatedSeconds?: number | null;
+  totalSeconds: number;
+  billableSeconds: number;
+  totalHours: number;
+  billableHours: number;
+  hourlyRate: number;
+  hourlyRateCents: number;
+  totalValue: number;
+  amountCents: number;
+  entriesCount: number;
+}
+
+function getMonthDateRange(monthStr: string) {
+  const now = new Date();
+  const [yStr, mStr] = (monthStr || "").split("-");
+  const year = Number(yStr) || now.getFullYear();
+  const monthIndex = (Number(mStr) || now.getMonth() + 1) - 1;
+  const startDate = new Date(year, monthIndex, 1, 0, 0, 0, 0).toISOString();
+  const endDate = new Date(year, monthIndex + 1, 0, 23, 59, 59, 999).toISOString();
+  return { startDate, endDate };
+}
+
 export class ReportController {
+  /**
+   * SSR: Renderiza a tela principal de Relatórios & Faturas (/reports)
+   */
   static async render(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const now = new Date();
     const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const selectedMonth = (req.query.month as string) || currentMonthStr;
     const selectedClientId = (req.query.clientId as string) || "";
+    const selectedProjectId = (req.query.projectId as string) || "";
+
+    const { startDate, endDate } = getMonthDateRange(selectedMonth);
 
     let clients: any[] = [];
+    let projects: any[] = [];
+    let summaryProjects: ProjectReportSummary[] = [];
     let invoices: Invoice[] = [];
     let timeEntries: any[] = [];
     let hourlyRateCents = 0;
     let currency = "BRL";
+    let summaryTotalHours: number | null = null;
+    let summaryBillableHours: number | null = null;
+    let summaryTotalValue: number | null = null;
+    let summaryTotalSeconds: number | null = null;
+    let summaryBillableSeconds: number | null = null;
+    let summaryAmountCents: number | null = null;
 
     const headers = token
       ? {
@@ -41,35 +86,62 @@ export class ReportController {
 
     try {
       if (token) {
-        const [yearStr, monthStr] = selectedMonth.split("-");
-        const year = Number(yearStr) || now.getFullYear();
-        const monthIndex = (Number(monthStr) || (now.getMonth() + 1)) - 1;
-        const startDate = new Date(year, monthIndex, 1).toISOString();
-        const endDate = new Date(year, monthIndex + 1, 0, 23, 59, 59, 999).toISOString();
+        const summaryParams = new URLSearchParams({
+          startDate,
+          endDate,
+        });
+        if (selectedClientId) summaryParams.set("clientId", selectedClientId);
+        if (selectedProjectId) summaryParams.set("projectId", selectedProjectId);
 
-        let entriesUrl = `${API_URL}/api/time-entries?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&limit=200`;
-        if (selectedClientId) {
-          entriesUrl += `&clientId=${encodeURIComponent(selectedClientId)}`;
-        }
+        const entriesParams = new URLSearchParams({
+          startDate,
+          endDate,
+          limit: "200",
+        });
+        if (selectedClientId) entriesParams.set("clientId", selectedClientId);
+        if (selectedProjectId) entriesParams.set("projectId", selectedProjectId);
 
         let invoicesUrl = `${API_URL}/api/invoices`;
         if (selectedClientId) {
           invoicesUrl += `?clientId=${encodeURIComponent(selectedClientId)}`;
         }
 
-        const [resClients, resInvoices, resEntries, resMe] = await Promise.allSettled([
-          axios.get(`${API_URL}/api/clients`, { headers, timeout: 2500 }),
-          axios.get(invoicesUrl, { headers, timeout: 2500 }),
-          axios.get(entriesUrl, { headers, timeout: 2500 }),
-          axios.get(`${API_URL}/api/auth/me`, { headers, timeout: 2500 }),
-        ]);
+        const [resSummary, resClients, resProjects, resInvoices, resEntries, resMe] =
+          await Promise.allSettled([
+            axios.get(`${API_URL}/api/reports/summary?${summaryParams.toString()}`, {
+              headers,
+              timeout: 4000,
+            }),
+            axios.get(`${API_URL}/api/clients`, { headers, timeout: 3000 }),
+            axios.get(`${API_URL}/api/projects`, { headers, timeout: 3000 }),
+            axios.get(invoicesUrl, { headers, timeout: 3000 }),
+            axios.get(`${API_URL}/api/time-entries?${entriesParams.toString()}`, {
+              headers,
+              timeout: 3000,
+            }),
+            axios.get(`${API_URL}/api/auth/me`, { headers, timeout: 2500 }),
+          ]);
 
         if (resClients.status === "fulfilled" && resClients.value.data?.success) {
           clients = resClients.value.data.data || [];
         }
 
+        if (resProjects.status === "fulfilled" && resProjects.value.data?.success) {
+          projects = resProjects.value.data.data || [];
+        }
+
         if (resInvoices.status === "fulfilled" && resInvoices.value.data?.success) {
-          invoices = resInvoices.value.data.data || [];
+          invoices = (resInvoices.value.data.data || []).map((inv: any) => ({
+            ...inv,
+            durationSeconds:
+              inv.durationSeconds !== undefined && inv.durationSeconds !== null
+                ? Number(inv.durationSeconds)
+                : hoursToSeconds(inv.totalHours),
+            amountCents:
+              inv.amountCents !== undefined && inv.amountCents !== null
+                ? Number(inv.amountCents)
+                : reaisToCents(inv.totalValue),
+          }));
         }
 
         if (resEntries.status === "fulfilled" && resEntries.value.data?.success) {
@@ -80,9 +152,76 @@ export class ReportController {
           const userMe = resMe.value.data.data;
           if (userMe?.settings?.hourlyRateCents !== undefined) {
             hourlyRateCents = Number(userMe.settings.hourlyRateCents) || 0;
+          } else if (userMe?.settings?.hourlyRate !== undefined) {
+            hourlyRateCents = reaisToCents(userMe.settings.hourlyRate);
           }
           if (userMe?.settings?.currency) {
             currency = userMe.settings.currency;
+          }
+        }
+
+        const projectById = new Map<string, any>();
+        projects.forEach((p: any) => {
+          if (p?.id) projectById.set(p.id, p);
+        });
+
+        if (resSummary.status === "fulfilled" && resSummary.value.data?.success) {
+          const sumData = resSummary.value.data.data;
+          if (sumData) {
+            if (sumData.hourlyRateCents !== undefined) {
+              hourlyRateCents = Number(sumData.hourlyRateCents) || hourlyRateCents;
+            } else if (sumData.hourlyRate !== undefined && hourlyRateCents === 0) {
+              hourlyRateCents = reaisToCents(sumData.hourlyRate);
+            }
+            if (sumData.currency) currency = sumData.currency;
+
+            if (sumData.totalHours !== undefined) summaryTotalHours = Number(sumData.totalHours);
+            if (sumData.billableHours !== undefined) summaryBillableHours = Number(sumData.billableHours);
+            if (sumData.totalValue !== undefined) summaryTotalValue = Number(sumData.totalValue);
+            if (sumData.totalSeconds !== undefined) summaryTotalSeconds = Number(sumData.totalSeconds);
+            if (sumData.billableSeconds !== undefined) summaryBillableSeconds = Number(sumData.billableSeconds);
+            if (sumData.amountCents !== undefined) summaryAmountCents = Number(sumData.amountCents);
+
+            summaryProjects = (sumData.projects || []).map((p: any) => {
+              const linkedProj = p.projectId ? projectById.get(p.projectId) : null;
+              const pTotalSec = Number(
+                p.totalSeconds ?? hoursToSeconds(p.totalHours)
+              );
+              const pBillSec = Number(
+                p.billableSeconds ?? hoursToSeconds(p.billableHours)
+              );
+              const pRateCents =
+                p.hourlyRateCents !== undefined
+                  ? Number(p.hourlyRateCents)
+                  : p.hourlyRate !== undefined
+                    ? reaisToCents(p.hourlyRate)
+                    : hourlyRateCents;
+              const pAmountCents =
+                p.amountCents !== undefined
+                  ? Number(p.amountCents)
+                  : p.totalValue !== undefined
+                    ? reaisToCents(p.totalValue)
+                    : calculateAmountCents(pBillSec, pRateCents);
+
+              return {
+                projectId: p.projectId ?? null,
+                projectName: p.projectName || linkedProj?.name || "Sem Projeto",
+                clientId: p.clientId ?? linkedProj?.clientId ?? null,
+                clientName: p.clientName || linkedProj?.client?.name || "Sem Cliente",
+                budgetHours: p.budgetHours ?? null,
+                budgetCents: p.budgetCents ?? linkedProj?.budgetCents ?? null,
+                estimatedSeconds: p.estimatedSeconds ?? linkedProj?.estimatedSeconds ?? null,
+                totalSeconds: pTotalSec,
+                billableSeconds: pBillSec,
+                totalHours: Number(p.totalHours ?? (pTotalSec / 3600).toFixed(2)),
+                billableHours: Number(p.billableHours ?? (pBillSec / 3600).toFixed(2)),
+                hourlyRate: Number((pRateCents / 100).toFixed(2)),
+                hourlyRateCents: pRateCents,
+                totalValue: Number(p.totalValue ?? (pAmountCents / 100).toFixed(2)),
+                amountCents: pAmountCents,
+                entriesCount: Number(p.entriesCount || 0),
+              };
+            });
           }
         }
       }
@@ -90,117 +229,458 @@ export class ReportController {
       console.error("Erro ao carregar dados de relatórios:", err.message);
     }
 
-    let totalSeconds = 0;
-    let totalBillableSeconds = 0;
-    let totalAmountCents = 0;
+    let entriesTotalSeconds = 0;
+    let entriesBillableSeconds = 0;
+    let entriesAmountCents = 0;
 
     timeEntries.forEach((entry) => {
-      const dur = entry.durationSeconds || 0;
-      totalSeconds += dur;
+      const dur = Number(entry.durationSeconds ?? entry.duration ?? 0);
+      entriesTotalSeconds += dur;
       if (entry.billable) {
-        totalBillableSeconds += dur;
-        totalAmountCents += calculateAmountCents(dur, hourlyRateCents);
+        entriesBillableSeconds += dur;
+        const entryAmount =
+          entry.amountCents !== undefined && entry.amountCents !== null && Number(entry.amountCents) > 0
+            ? Number(entry.amountCents)
+            : calculateAmountCents(dur, hourlyRateCents);
+        entriesAmountCents += entryAmount;
       }
     });
+
+    // Caso /api/reports/summary não retorne projetos agrupados, agrupa localmente via timeEntries + projects
+    if (summaryProjects.length === 0 && timeEntries.length > 0) {
+      const projectById = new Map<string, any>();
+      projects.forEach((p: any) => {
+        if (p?.id) projectById.set(p.id, p);
+      });
+      const clientById = new Map<string, any>();
+      clients.forEach((c: any) => {
+        if (c?.id) clientById.set(c.id, c);
+      });
+
+      const groupMap = new Map<string, ProjectReportSummary>();
+      timeEntries.forEach((entry) => {
+        const key = entry.projectId || "unassigned";
+        const linkedProj = entry.projectId ? projectById.get(entry.projectId) : null;
+        const resolvedClientId = entry.project?.clientId || linkedProj?.clientId || null;
+        const resolvedClientName =
+          entry.project?.client?.name ||
+          linkedProj?.client?.name ||
+          (resolvedClientId ? clientById.get(resolvedClientId)?.name : null) ||
+          "Sem Cliente";
+
+        const dur = Number(entry.durationSeconds ?? entry.duration ?? 0);
+        const billDur = entry.billable ? dur : 0;
+        const entryAmt = entry.billable
+          ? entry.amountCents !== undefined && entry.amountCents !== null && Number(entry.amountCents) > 0
+            ? Number(entry.amountCents)
+            : calculateAmountCents(dur, hourlyRateCents)
+          : 0;
+
+        const existing = groupMap.get(key);
+        if (!existing) {
+          const estSec = linkedProj?.estimatedSeconds ?? entry.project?.estimatedSeconds ?? null;
+          groupMap.set(key, {
+            projectId: entry.projectId ?? null,
+            projectName: entry.project?.name || linkedProj?.name || "Sem Projeto",
+            clientId: resolvedClientId,
+            clientName: resolvedClientName,
+            budgetHours: estSec ? Number((estSec / 3600).toFixed(2)) : null,
+            budgetCents: linkedProj?.budgetCents ?? entry.project?.budgetCents ?? null,
+            estimatedSeconds: estSec,
+            totalSeconds: dur,
+            billableSeconds: billDur,
+            totalHours: 0,
+            billableHours: 0,
+            hourlyRate: Number((hourlyRateCents / 100).toFixed(2)),
+            hourlyRateCents,
+            totalValue: 0,
+            amountCents: entryAmt,
+            entriesCount: 1,
+          });
+        } else {
+          existing.totalSeconds += dur;
+          existing.billableSeconds += billDur;
+          existing.amountCents += entryAmt;
+          existing.entriesCount += 1;
+        }
+      });
+
+      summaryProjects = Array.from(groupMap.values()).map((g) => ({
+        ...g,
+        totalHours: Number((g.totalSeconds / 3600).toFixed(2)),
+        billableHours: Number((g.billableSeconds / 3600).toFixed(2)),
+        totalValue: Number((g.amountCents / 100).toFixed(2)),
+      }));
+    }
+
+    const totalSeconds =
+      summaryTotalSeconds !== null
+        ? summaryTotalSeconds
+        : entriesTotalSeconds > 0
+          ? entriesTotalSeconds
+          : hoursToSeconds(summaryTotalHours);
+
+    const totalBillableSeconds =
+      summaryBillableSeconds !== null
+        ? summaryBillableSeconds
+        : entriesBillableSeconds > 0
+          ? entriesBillableSeconds
+          : hoursToSeconds(summaryBillableHours);
+
+    const totalAmountCents =
+      summaryAmountCents !== null
+        ? summaryAmountCents
+        : entriesAmountCents > 0
+          ? entriesAmountCents
+          : reaisToCents(summaryTotalValue);
+
+    const hourlyRate = Number((hourlyRateCents / 100).toFixed(2));
+    const totalHours =
+      summaryTotalHours !== null ? summaryTotalHours : Number((totalSeconds / 3600).toFixed(2));
+    const totalBillableHours =
+      summaryBillableHours !== null
+        ? summaryBillableHours
+        : Number((totalBillableSeconds / 3600).toFixed(2));
+    const totalValue =
+      summaryTotalValue !== null ? summaryTotalValue : Number((totalAmountCents / 100).toFixed(2));
 
     return res.render("reports/index", {
       pageTitle: "TrackFlow - Relatórios & Faturas",
       activeTab: "reports",
       user: req.user,
       clients,
+      projects,
+      summaryProjects,
       invoices,
       timeEntries,
       selectedMonth,
       selectedClientId,
+      selectedProjectId,
+      startDate,
+      endDate,
       totalSeconds,
       totalBillableSeconds,
       hourlyRateCents,
       totalAmountCents,
+      totalHours,
+      totalBillableHours,
+      hourlyRate,
+      totalValue,
       currency,
       success: req.query.success || null,
       error: req.query.error || null,
     });
   }
 
-  static async generateAiSummary(req: Request, res: Response) {
+  /**
+   * 1. GET /api/reports/summary (e /reports/summary)
+   * Retorna soma de horas e valor financeiro agrupados por projeto.
+   */
+  static async getSummary(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
-    const { clientId, monthRef, startDate, endDate } = req.body;
+    const { clientId, projectId, startDate, endDate, hourlyRate, month } = req.query;
+
+    const params = new URLSearchParams();
+    if (typeof clientId === "string" && clientId) params.set("clientId", clientId);
+    if (typeof projectId === "string" && projectId) params.set("projectId", projectId);
+    if (typeof hourlyRate === "string" && hourlyRate) params.set("hourlyRate", hourlyRate);
+
+    if (typeof startDate === "string" && startDate) {
+      params.set("startDate", startDate);
+    } else if (typeof month === "string" && month) {
+      const range = getMonthDateRange(month);
+      params.set("startDate", range.startDate);
+      params.set("endDate", range.endDate);
+    }
+
+    if (typeof endDate === "string" && endDate) {
+      params.set("endDate", endDate);
+    }
 
     try {
-      const response = await axios.post(
-        `${API_URL}/api/reports/ai-summary`,
-        { clientId, monthRef, startDate, endDate },
+      const response = await axios.get(
+        `${API_URL}/api/reports/summary?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
             Cookie: `trackflow_session=${token}`,
           },
-          timeout: 25000,
-        },
+          timeout: 8000,
+        }
       );
 
-      return res.json(response.data);
+      return res.status(200).json(response.data);
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || "Erro ao gerar resumo com IA.";
-      return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
+      const msg =
+        err.response?.data?.error?.message || "Erro ao consultar resumo financeiro por projeto.";
+      return res
+        .status(err.response?.status || 400)
+        .json({ success: false, error: { message: msg } });
     }
   }
 
+  /**
+   * 2. POST /api/reports/ai-insight (e /reports/ai-summary)
+   * Envia os apontamentos filtrados para o Ollama Cloud (gpt-oss:120b) e retorna o texto gerado.
+   */
+  static async generateAiSummary(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { clientId, projectId, monthRef, startDate, endDate, prompt, activities } =
+      req.body || {};
+
+    let finalStartDate = startDate;
+    let finalEndDate = endDate;
+
+    if (
+      !finalStartDate &&
+      !finalEndDate &&
+      typeof monthRef === "string" &&
+      /^\d{4}-\d{2}$/.test(monthRef)
+    ) {
+      const range = getMonthDateRange(monthRef);
+      finalStartDate = range.startDate;
+      finalEndDate = range.endDate;
+    }
+
+    const requestHeaders = {
+      Authorization: `Bearer ${token}`,
+      Cookie: `trackflow_session=${token}`,
+    };
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/reports/ai-insight`,
+        {
+          clientId: clientId || undefined,
+          projectId: projectId || undefined,
+          monthRef,
+          startDate: finalStartDate,
+          endDate: finalEndDate,
+          prompt,
+          activities,
+        },
+        {
+          headers: requestHeaders,
+          timeout: 60000, // Ollama Cloud gpt-oss:120b stream
+        }
+      );
+
+      return res.status(200).json(response.data);
+    } catch (err: any) {
+      // Fallback para endpoint legado /api/reports/ai-summary se /ai-insight ainda não estiver ativo na API
+      if (err.response?.status === 404 && clientId) {
+        try {
+          const fallbackRes = await axios.post(
+            `${API_URL}/api/reports/ai-summary`,
+            { clientId, monthRef, startDate: finalStartDate, endDate: finalEndDate },
+            { headers: requestHeaders, timeout: 25000 }
+          );
+          return res.status(200).json(fallbackRes.data);
+        } catch (fallbackErr: any) {
+          const fallbackMsg =
+            fallbackErr.response?.data?.error?.message || "Erro ao gerar resumo executivo com IA.";
+          return res
+            .status(fallbackErr.response?.status || 400)
+            .json({ success: false, error: { message: fallbackMsg } });
+        }
+      }
+
+      const msg = err.response?.data?.error?.message || "Erro ao gerar resumo executivo com IA.";
+      return res
+        .status(err.response?.status || 400)
+        .json({ success: false, error: { message: msg } });
+    }
+  }
+
+  /**
+   * 3. POST /api/invoices/generate (e /reports/invoices)
+   * Gera a fatura (Dados + Resumo IA + HTML/PDF base64) e salva no banco.
+   */
   static async createInvoice(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const {
       clientId,
       monthRef,
+      startDate,
+      endDate,
       durationSeconds,
       amountCents,
+      totalHours,
       totalValue,
+      hourlyRate,
       aiSummary,
+      generateAi,
       sendEmail,
       recipientEmail,
-    } = req.body;
-    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+    } = req.body || {};
 
-    const resolvedDurationSeconds = Math.max(0, Math.round(Number(durationSeconds) || 0));
+    const wantsJson =
+      req.path.startsWith("/api/") ||
+      req.xhr ||
+      req.headers.accept?.includes("application/json");
+
+    let finalStartDate = startDate;
+    let finalEndDate = endDate;
+    if (
+      !finalStartDate &&
+      !finalEndDate &&
+      typeof monthRef === "string" &&
+      /^\d{4}-\d{2}$/.test(monthRef)
+    ) {
+      const range = getMonthDateRange(monthRef);
+      finalStartDate = range.startDate;
+      finalEndDate = range.endDate;
+    }
+
+    const resolvedDurationSeconds =
+      durationSeconds !== undefined && durationSeconds !== null && String(durationSeconds).trim() !== ""
+        ? Math.max(0, Math.round(Number(durationSeconds) || 0))
+        : totalHours !== undefined && totalHours !== null && String(totalHours).trim() !== ""
+          ? hoursToSeconds(totalHours)
+          : undefined;
+
     const resolvedAmountCents =
-      amountCents !== undefined && amountCents !== null && amountCents !== ""
+      amountCents !== undefined && amountCents !== null && String(amountCents).trim() !== ""
         ? Math.max(0, Math.round(Number(amountCents) || 0))
-        : reaisToCents(totalValue);
+        : totalValue !== undefined && totalValue !== null && String(totalValue).trim() !== ""
+          ? reaisToCents(totalValue)
+          : undefined;
+
+    const resolvedTotalHours =
+      totalHours !== undefined && String(totalHours).trim() !== ""
+        ? Number(totalHours)
+        : resolvedDurationSeconds !== undefined
+          ? Number((resolvedDurationSeconds / 3600).toFixed(2))
+          : undefined;
+
+    const resolvedTotalValue =
+      totalValue !== undefined && String(totalValue).trim() !== ""
+        ? Number(totalValue)
+        : resolvedAmountCents !== undefined
+          ? Number((resolvedAmountCents / 100).toFixed(2))
+          : undefined;
+
+    const payload = {
+      clientId,
+      monthRef,
+      startDate: finalStartDate,
+      endDate: finalEndDate,
+      durationSeconds: resolvedDurationSeconds,
+      amountCents: resolvedAmountCents,
+      totalHours: resolvedTotalHours,
+      totalValue: resolvedTotalValue,
+      hourlyRate:
+        hourlyRate !== undefined && hourlyRate !== "" ? Number(hourlyRate) : undefined,
+      aiSummary: aiSummary || undefined,
+      generateAi: generateAi === "true" || generateAi === true || generateAi === "on",
+      sendEmail: sendEmail === "true" || sendEmail === true || sendEmail === "on",
+      recipientEmail: recipientEmail || undefined,
+    };
+
+    const requestHeaders = {
+      Authorization: `Bearer ${token}`,
+      Cookie: `trackflow_session=${token}`,
+    };
+
+    try {
+      const response = await axios.post(`${API_URL}/api/invoices/generate`, payload, {
+        headers: requestHeaders,
+        timeout: 60000,
+      });
+
+      if (wantsJson) return res.status(201).json(response.data);
+      return res.redirect("/reports?success=Fatura+gerada+com+sucesso!");
+    } catch (err: any) {
+      // Fallback para endpoint /api/invoices caso /generate ainda não exista na API
+      if (err.response?.status === 404) {
+        try {
+          const fallbackRes = await axios.post(`${API_URL}/api/invoices`, payload, {
+            headers: requestHeaders,
+            timeout: 10000,
+          });
+          if (wantsJson) return res.status(201).json(fallbackRes.data);
+          return res.redirect("/reports?success=Fatura+gerada+com+sucesso!");
+        } catch (fallbackErr: any) {
+          const fallbackMsg =
+            fallbackErr.response?.data?.error?.message || "Erro ao emitir fatura.";
+          if (wantsJson) {
+            return res
+              .status(fallbackErr.response?.status || 400)
+              .json({ success: false, error: { message: fallbackMsg } });
+          }
+          return res.redirect(`/reports?error=${encodeURIComponent(fallbackMsg)}`);
+        }
+      }
+
+      const msg = err.response?.data?.error?.message || "Erro ao emitir fatura.";
+      if (wantsJson) {
+        return res
+          .status(err.response?.status || 400)
+          .json({ success: false, error: { message: msg } });
+      }
+      return res.redirect(`/reports?error=${encodeURIComponent(msg)}`);
+    }
+  }
+
+  /**
+   * 4. POST /api/invoices/:id/send (e /reports/invoices/:id/send)
+   * Dispara a fatura gerada para o e-mail do cliente via Resend.
+   */
+  static async sendInvoice(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { id } = req.params;
+    const { to, recipientEmail, subject } = req.body || {};
+    const wantsJson =
+      req.path.startsWith("/api/") ||
+      req.xhr ||
+      req.headers.accept?.includes("application/json");
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/invoices`,
+        `${API_URL}/api/invoices/${id}/send`,
         {
-          clientId,
-          monthRef,
-          durationSeconds: resolvedDurationSeconds,
-          amountCents: resolvedAmountCents,
-          aiSummary: aiSummary || undefined,
-          sendEmail: sendEmail === "true" || sendEmail === true || sendEmail === "on",
-          recipientEmail: recipientEmail || undefined,
+          to: to || recipientEmail || undefined,
+          recipientEmail: recipientEmail || to || undefined,
+          subject: subject || undefined,
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
             Cookie: `trackflow_session=${token}`,
           },
-          timeout: 6000,
-        },
+          timeout: 15000,
+        }
       );
 
-      if (wantsJson) return res.status(201).json(response.data);
-      return res.redirect("/reports?success=Fatura+gerada+com+sucesso!");
+      if (wantsJson) return res.status(200).json(response.data);
+      const sentTo = response.data?.data?.to || to || recipientEmail || "cliente";
+      return res.redirect(
+        `/reports?success=${encodeURIComponent(`Fatura enviada por e-mail para ${sentTo} com sucesso!`)}`
+      );
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || "Erro ao emitir fatura.";
-      if (wantsJson) return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
+      const msg =
+        err.response?.data?.error?.message || "Erro ao disparar fatura por e-mail via Resend.";
+      if (wantsJson) {
+        return res
+          .status(err.response?.status || 400)
+          .json({ success: false, error: { message: msg } });
+      }
       return res.redirect(`/reports?error=${encodeURIComponent(msg)}`);
     }
   }
 
+  /**
+   * 5. PATCH /api/invoices/:id/status (e /reports/invoices/:id/status)
+   * Altera o status do pagamento (pendente, pago, cancelado).
+   */
   static async updateInvoiceStatus(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { id } = req.params;
-    const { status } = req.body;
-    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+    const { status } = req.body || {};
+    const wantsJson =
+      req.path.startsWith("/api/") ||
+      req.xhr ||
+      req.headers.accept?.includes("application/json");
 
     try {
       const response = await axios.patch(
@@ -211,15 +691,19 @@ export class ReportController {
             Authorization: `Bearer ${token}`,
             Cookie: `trackflow_session=${token}`,
           },
-          timeout: 4000,
-        },
+          timeout: 6000,
+        }
       );
 
       if (wantsJson) return res.status(200).json(response.data);
       return res.redirect("/reports?success=Status+da+fatura+atualizado!");
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || "Erro ao atualizar status da fatura.";
-      if (wantsJson) return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
+      if (wantsJson) {
+        return res
+          .status(err.response?.status || 400)
+          .json({ success: false, error: { message: msg } });
+      }
       return res.redirect(`/reports?error=${encodeURIComponent(msg)}`);
     }
   }
