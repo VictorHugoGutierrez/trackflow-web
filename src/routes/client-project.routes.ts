@@ -18,11 +18,7 @@ clientProjectRoutes.delete("/clients/:id", ClientProjectController.deleteClient)
 clientProjectRoutes.post("/projects", ClientProjectController.createProject);
 clientProjectRoutes.post("/projects/:id/update", ClientProjectController.updateProject);
 clientProjectRoutes.patch("/projects/:id", ClientProjectController.updateProject);
+clientProjectRoutes.post("/projects/:id/status", ClientProjectController.updateProjectStatus);
+clientProjectRoutes.patch("/projects/:id/status", ClientProjectController.updateProjectStatus);
 clientProjectRoutes.post("/projects/:id/delete", ClientProjectController.deleteProject);
 clientProjectRoutes.delete("/projects/:id", ClientProjectController.deleteProject);
-
-// Tasks Actions
-clientProjectRoutes.get("/api/projects/:projectId/tasks", ClientProjectController.getTasksByProject);
-clientProjectRoutes.post("/tasks", ClientProjectController.createTask);
-clientProjectRoutes.post("/tasks/:id/delete", ClientProjectController.deleteTask);
-clientProjectRoutes.delete("/tasks/:id", ClientProjectController.deleteTask);

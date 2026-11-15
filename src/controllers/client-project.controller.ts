@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import axios from "axios";
+import { hoursToSeconds, reaisToCents } from "../utils/formatters.js";
 
 const API_URL = process.env.API_URL || "http://localhost:3333";
 
@@ -15,12 +16,15 @@ export interface Client {
 export interface Project {
   id: string;
   name: string;
-  budgetHours?: number | null;
-  status: "em_andamento" | "concluido" | "arquivado";
+  budgetCents?: number | null;
+  estimatedSeconds?: number | null;
+  status: "ACTIVE" | "COMPLETED" | "OVER_BUDGET";
+  totalSecondsSpent?: number;
+  accumulatedCostCents?: number;
+  progressPercent?: number;
   clientId?: string | null;
   client?: Client | null;
   createdAt?: string;
-  tasks?: any[];
 }
 
 export class ClientProjectController {
@@ -57,12 +61,11 @@ export class ClientProjectController {
       console.error("Erro ao carregar Clientes e Projetos:", err.message);
     }
 
-    // Calcular Métricas
     const projectMetrics = {
       total: projects.length,
-      inProgress: projects.filter((p) => p.status === "em_andamento").length,
-      completed: projects.filter((p) => p.status === "concluido").length,
-      archived: projects.filter((p) => p.status === "arquivado").length,
+      active: projects.filter((p) => p.status === "ACTIVE").length,
+      overBudget: projects.filter((p) => p.status === "OVER_BUDGET").length,
+      completed: projects.filter((p) => p.status === "COMPLETED").length,
     };
 
     const clientMetrics = {
@@ -101,7 +104,7 @@ export class ClientProjectController {
             Cookie: `trackflow_session=${token}`,
           },
           timeout: 4000,
-        }
+        },
       );
 
       if (wantsJson) return res.status(201).json(response.data);
@@ -133,7 +136,7 @@ export class ClientProjectController {
             Cookie: `trackflow_session=${token}`,
           },
           timeout: 4000,
-        }
+        },
       );
 
       if (wantsJson) return res.status(200).json(response.data);
@@ -171,8 +174,11 @@ export class ClientProjectController {
   // --- Projetos ---
   static async createProject(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
-    const { name, clientId, budgetHours, status } = req.body;
+    const { name, clientId, budgetReais, estimatedHours, status } = req.body;
     const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    const hasBudget = budgetReais !== undefined && String(budgetReais).trim() !== "";
+    const hasEstimated = estimatedHours !== undefined && String(estimatedHours).trim() !== "";
 
     try {
       const response = await axios.post(
@@ -180,7 +186,8 @@ export class ClientProjectController {
         {
           name,
           clientId: clientId || undefined,
-          budgetHours: budgetHours ? Number(budgetHours) : undefined,
+          budgetCents: hasBudget ? reaisToCents(budgetReais) : null,
+          estimatedSeconds: hasEstimated ? hoursToSeconds(estimatedHours) : null,
           status: status || undefined,
         },
         {
@@ -189,7 +196,7 @@ export class ClientProjectController {
             Cookie: `trackflow_session=${token}`,
           },
           timeout: 4000,
-        }
+        },
       );
 
       if (wantsJson) return res.status(201).json(response.data);
@@ -204,8 +211,11 @@ export class ClientProjectController {
   static async updateProject(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { id } = req.params;
-    const { name, clientId, budgetHours, status } = req.body;
+    const { name, clientId, budgetReais, estimatedHours, status } = req.body;
     const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    const hasBudget = budgetReais !== undefined && String(budgetReais).trim() !== "";
+    const hasEstimated = estimatedHours !== undefined && String(estimatedHours).trim() !== "";
 
     try {
       const response = await axios.patch(
@@ -213,7 +223,8 @@ export class ClientProjectController {
         {
           name: name || undefined,
           clientId: clientId || null,
-          budgetHours: budgetHours !== undefined && budgetHours !== "" ? Number(budgetHours) : null,
+          budgetCents: hasBudget ? reaisToCents(budgetReais) : null,
+          estimatedSeconds: hasEstimated ? hoursToSeconds(estimatedHours) : null,
           status: status || undefined,
         },
         {
@@ -222,13 +233,42 @@ export class ClientProjectController {
             Cookie: `trackflow_session=${token}`,
           },
           timeout: 4000,
-        }
+        },
       );
 
       if (wantsJson) return res.status(200).json(response.data);
       return res.redirect("/projects?tab=projects&success=Projeto+atualizado+com+sucesso!");
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || "Erro ao atualizar projeto.";
+      if (wantsJson) return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
+      return res.redirect(`/projects?tab=projects&error=${encodeURIComponent(msg)}`);
+    }
+  }
+
+  static async updateProjectStatus(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { id } = req.params;
+    const { status } = req.body;
+    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    try {
+      const response = await axios.patch(
+        `${API_URL}/api/projects/${id}/status`,
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Cookie: `trackflow_session=${token}`,
+          },
+          timeout: 4000,
+        },
+      );
+
+      if (wantsJson) return res.status(200).json(response.data);
+      const label = status === "COMPLETED" ? "Projeto+concluído+com+sucesso!" : "Projeto+reaberto+com+sucesso!";
+      return res.redirect(`/projects?tab=projects&success=${label}`);
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || "Erro ao atualizar status do projeto.";
       if (wantsJson) return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
       return res.redirect(`/projects?tab=projects&error=${encodeURIComponent(msg)}`);
     }
@@ -252,81 +292,6 @@ export class ClientProjectController {
       return res.redirect("/projects?tab=projects&success=Projeto+removido+com+sucesso!");
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || "Erro ao remover projeto.";
-      if (wantsJson) return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
-      return res.redirect(`/projects?tab=projects&error=${encodeURIComponent(msg)}`);
-    }
-  }
-
-  // --- Tarefas ---
-  static async getTasksByProject(req: Request, res: Response) {
-    const token = req.cookies?.trackflow_session;
-    const { projectId } = req.params;
-
-    try {
-      const response = await axios.get(`${API_URL}/api/tasks?projectId=${projectId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Cookie: `trackflow_session=${token}`,
-        },
-        timeout: 4000,
-      });
-
-      return res.json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 400).json({ success: false, error: { message: "Erro ao buscar tarefas." } });
-    }
-  }
-
-  static async createTask(req: Request, res: Response) {
-    const token = req.cookies?.trackflow_session;
-    const { projectId, title, estimatedHours, status } = req.body;
-    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
-
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/tasks`,
-        {
-          projectId,
-          title,
-          estimatedHours: estimatedHours ? Number(estimatedHours) : undefined,
-          status: status || undefined,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Cookie: `trackflow_session=${token}`,
-          },
-          timeout: 4000,
-        }
-      );
-
-      if (wantsJson) return res.status(201).json(response.data);
-      return res.redirect("/projects?tab=projects&success=Tarefa+adicionada+com+sucesso!");
-    } catch (err: any) {
-      const msg = err.response?.data?.error?.message || "Erro ao criar tarefa.";
-      if (wantsJson) return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
-      return res.redirect(`/projects?tab=projects&error=${encodeURIComponent(msg)}`);
-    }
-  }
-
-  static async deleteTask(req: Request, res: Response) {
-    const token = req.cookies?.trackflow_session;
-    const { id } = req.params;
-    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
-
-    try {
-      await axios.delete(`${API_URL}/api/tasks/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Cookie: `trackflow_session=${token}`,
-        },
-        timeout: 4000,
-      });
-
-      if (wantsJson) return res.status(200).json({ success: true });
-      return res.redirect("/projects?tab=projects&success=Tarefa+removida+com+sucesso!");
-    } catch (err: any) {
-      const msg = err.response?.data?.error?.message || "Erro ao remover tarefa.";
       if (wantsJson) return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
       return res.redirect(`/projects?tab=projects&error=${encodeURIComponent(msg)}`);
     }
