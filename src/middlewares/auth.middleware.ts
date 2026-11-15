@@ -79,6 +79,11 @@ export async function authMiddleware(
     req.user = payload;
     res.locals.user = payload;
 
+    // Check for mandatory password change
+    if (payload.mustChangePassword === true && pathname !== "/first-access") {
+      return res.redirect("/first-access");
+    }
+
     const role = payload.role as UserRole;
 
     if (

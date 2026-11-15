@@ -9,3 +9,5 @@ authRoutes.post("/session", AuthController.setSession);
 authRoutes.get("/logout", AuthController.handleLogout);
 authRoutes.post("/logout", AuthController.handleLogout);
 authRoutes.get("/dev-login", AuthController.devLogin);
+authRoutes.get("/first-access", AuthController.renderFirstAccess);
+authRoutes.post("/first-access", AuthController.handleFirstAccess);

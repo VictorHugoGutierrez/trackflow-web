@@ -1,0 +1,24 @@
+<%- include('partials/head') %>
+
+<div class="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-background p-4">
+  <div class="w-full max-w-md bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
+    <div class="text-center mb-6">
+      <h1 class="text-xl font-bold text-slate-900 dark:text-white">Troca de Senha Obrigatória</h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Por segurança, defina sua nova senha para continuar acessando o TrackFlow.</p>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="p-3 mb-4 text-xs text-red-600 bg-red-50 rounded-lg">
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/first-access" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nova Senha</label>
+        <input type="password" name="password" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs" />
+      </div>
+      <button type="submit" class="w-full py-2.5 bg-play text-white rounded-xl text-xs font-bold shadow-sm">Confirmar Alteração</button>
+    </form>
+  </div>
+</div>

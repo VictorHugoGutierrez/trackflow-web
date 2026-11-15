@@ -92,6 +92,29 @@ export class AuthController {
     return res.redirect("/");
   }
 
+  static renderFirstAccess(req: Request, res: Response) {
+    return res.render("first-access", {
+      pageTitle: "Troca de Senha Obrigatória",
+      error: req.query.error || null,
+    });
+  }
+
+  static async handleFirstAccess(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { password } = req.body;
+
+    try {
+      await axios.patch(
+        `${API_URL}/api/auth/first-access`,
+        { password },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return res.redirect("/dashboard?success=Senha+atualizada+com+sucesso!");
+    } catch (err: any) {
+      return res.redirect("/first-access?error=Falha+ao+atualizar+senha.");
+    }
+  }
+
   static devLogin(req: Request, res: Response) {
     if (process.env.NODE_ENV === "production") {
       return res.redirect("/");
