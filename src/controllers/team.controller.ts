@@ -21,26 +21,35 @@ export class TeamController {
   static async renderTeam(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     let members: TeamMember[] = [];
+    let projects: any[] = [];
     const errorMessage: string | null = (req.query.error as string) || null;
     const successMessage: string | null = (req.query.success as string) || null;
+    
+    const headers = token
+      ? {
+          Authorization: `Bearer ${token}`,
+          Cookie: `trackflow_session=${token}`,
+        }
+      : {};
 
     try {
       if (token) {
-        const response = await axios.get(`${API_URL}/api/team`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Cookie: `trackflow_session=${token}`,
-          },
-          timeout: 2000,
-        });
+        const [resMembers, resProjects] = await Promise.allSettled([
+          axios.get(`${API_URL}/api/team`, { headers, timeout: 2000 }),
+          axios.get(`${API_URL}/api/projects`, { headers, timeout: 2000 }),
+        ]);
 
-        if (response.data?.success) {
-          members = response.data.data || [];
+        if (resMembers.status === "fulfilled" && resMembers.value.data?.success) {
+          members = resMembers.value.data.data || [];
+        }
+        
+        if (resProjects.status === "fulfilled" && resProjects.value.data?.success) {
+          projects = resProjects.value.data.data || [];
         }
       }
     } catch (err: any) {
-      console.error("Erro ao carregar equipe via API:", err.response?.data || err.message);
-      if (req.user) {
+      console.error("Erro ao carregar dados da equipe ou projetos via API:", err.response?.data || err.message);
+      if (req.user && members.length === 0) {
         members = [
           {
             id: req.user.sub,
@@ -60,6 +69,7 @@ export class TeamController {
       pageTitle: "TrackFlow - Gestão de Equipe",
       user: req.user,
       members,
+      projects,
       apiUrl: API_URL,
       success: successMessage,
       error: errorMessage,

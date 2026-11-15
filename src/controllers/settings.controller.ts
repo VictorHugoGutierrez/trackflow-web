@@ -25,6 +25,7 @@ export class SettingsController {
         plan: "pro",
       },
     };
+    let projects: any[] = [];
 
     const headers = token
       ? {
@@ -35,13 +36,21 @@ export class SettingsController {
 
     try {
       if (token) {
-        const response = await axios.get(`${API_URL}/api/auth/me`, { headers, timeout: 2500 });
-        if (response.data?.success && response.data?.data) {
-          userMe = response.data.data;
+        const [resMe, resProjects] = await Promise.allSettled([
+          axios.get(`${API_URL}/api/auth/me`, { headers, timeout: 2500 }),
+          axios.get(`${API_URL}/api/projects`, { headers, timeout: 2500 }),
+        ]);
+        
+        if (resMe.status === "fulfilled" && resMe.value.data?.success && resMe.value.data?.data) {
+          userMe = resMe.value.data.data;
+        }
+        
+        if (resProjects.status === "fulfilled" && resProjects.value.data?.success) {
+          projects = resProjects.value.data.data || [];
         }
       }
     } catch (err: any) {
-      console.error("Erro ao carregar dados do usuário em settings:", err.message);
+      console.error("Erro ao carregar dados em settings:", err.message);
     }
 
     return res.render("settings/index", {
@@ -50,6 +59,7 @@ export class SettingsController {
       currentTab: tab,
       user: req.user,
       userMe,
+      projects,
       success: req.query.success || null,
       error: req.query.error || null,
     });
