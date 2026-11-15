@@ -4,6 +4,7 @@ import { TeamController } from "../controllers/team.controller.js";
 export const teamRoutes = Router();
 
 teamRoutes.get("/team", TeamController.renderTeam);
+teamRoutes.get("/team/:id/activity", TeamController.getMemberActivity);
 teamRoutes.post("/team", TeamController.createMember);
 teamRoutes.post("/team/:id/update", TeamController.updateMember);
 teamRoutes.patch("/team/:id", TeamController.updateMember);

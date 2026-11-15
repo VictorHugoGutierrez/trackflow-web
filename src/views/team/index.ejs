@@ -75,8 +75,8 @@
     const totalMembers = members ? members.length : 0;
     const managersCount = members ? members.filter(m => m.role === 'OWNER' || m.role === 'MANAGER').length : 0;
     const standardMembersCount = members ? members.filter(m => m.role === 'MEMBER').length : 0;
-    const sumRates = members ? members.reduce((acc, m) => acc + (Number(m.hourlyRate) || 0), 0) : 0;
-    const avgRate = totalMembers > 0 ? (sumRates / totalMembers).toFixed(2) : "0.00";
+    const sumRatesCents = members ? members.reduce((acc, m) => acc + (Number(m.hourlyRateCents) || 0), 0) : 0;
+    const avgRateCents = totalMembers > 0 ? Math.round(sumRatesCents / totalMembers) : 0;
   %>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
@@ -94,12 +94,12 @@
     <div class="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
       <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Colaboradores (Membros)</div>
       <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400"><%= standardMembersCount %></div>
-      <div class="text-[11px] text-slate-400">Rastreiam tempo em tarefas</div>
+      <div class="text-[11px] text-slate-400">Rastreiam tempo em projetos</div>
     </div>
 
     <div class="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
       <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Valor Médio da Hora</div>
-      <div class="text-2xl font-bold text-slate-900 dark:text-white">R$ <%= avgRate %></div>
+      <div class="text-2xl font-bold text-slate-900 dark:text-white"><%= formatCurrencyCents(avgRateCents) %></div>
       <div class="text-[11px] text-slate-400">Taxa média da equipe</div>
     </div>
   </div>
@@ -165,7 +165,7 @@
                 </td>
 
                 <td class="px-6 py-4 whitespace-nowrap font-mono font-semibold text-slate-800 dark:text-slate-200">
-                  R$ <%= Number(member.hourlyRate || 0).toFixed(2) %>/h
+                  <%= formatCurrencyCents(member.hourlyRateCents) %>/h
                 </td>
 
                 <td class="px-6 py-4 whitespace-nowrap text-slate-500 dark:text-slate-400 text-[11px]">
@@ -177,7 +177,16 @@
                     <% if (typeof user !== 'undefined' && user && (user.role === 'OWNER' || user.role === 'MANAGER' || user.role === 'SUPER_ADMIN')) { %>
                       <button
                         type="button"
-                        onclick="openEditModal('<%= member.id %>', '<%= esc(member.name) %>', '<%= member.role %>', '<%= member.hourlyRate || 0 %>')"
+                        onclick="openActivityModal('<%= member.id %>', '<%= esc(member.name) %>')"
+                        class="px-2.5 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors border border-blue-200 dark:border-blue-900/40 cursor-pointer"
+                        title="Ver atividade e detalhes do colaborador"
+                      >
+                        Ver Atividade / Detalhes
+                      </button>
+
+                      <button
+                        type="button"
+                        onclick="openEditModal('<%= member.id %>', '<%= esc(member.name) %>', '<%= member.role %>', '<%= member.hourlyRateCents || 0 %>')"
                         class="px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
                         title="Editar membro"
                       >
@@ -284,12 +293,12 @@
           <label for="add-rate" class="block text-slate-700 dark:text-slate-300 font-medium">Valor Hora (R$)</label>
           <input
             type="number"
-            step="0.50"
+            step="0.01"
             min="0"
             id="add-rate"
             name="hourlyRate"
             placeholder="0.00"
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
         </div>
       </div>
@@ -358,11 +367,11 @@
           <label for="edit-rate" class="block text-slate-700 dark:text-slate-300 font-medium">Valor Hora (R$)</label>
           <input
             type="number"
-            step="0.50"
+            step="0.01"
             min="0"
             id="edit-rate"
             name="hourlyRate"
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
         </div>
       </div>
@@ -428,6 +437,66 @@
     </form>
   </div>
 </div>
+<!-- Modal Atividade / Detalhes do Membro -->
+<div id="modal-member-activity" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-5 text-xs shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+      <div>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <span>Atividade do Colaborador:</span>
+          <span id="activity-member-name" class="text-emerald-600 dark:text-emerald-400"></span>
+        </h3>
+        <p id="activity-member-meta" class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5"></p>
+      </div>
+      <button type="button" onclick="closeActivityModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg text-base">
+        &times;
+      </button>
+    </div>
+
+    <div id="activity-loading" class="py-10 text-center text-slate-400">
+      Carregando resumo e histórico de apontamentos...
+    </div>
+
+    <div id="activity-error" class="hidden p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs"></div>
+
+    <div id="activity-content" class="hidden space-y-5">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700/80">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400">Tempo Total Registrado</div>
+          <div id="activity-total-duration" class="text-lg font-bold font-mono text-slate-900 dark:text-white mt-1">00:00:00</div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700/80">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400">Custo Acumulado</div>
+          <div id="activity-total-cost" class="text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">R$ 0,00</div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700/80">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400">Projetos / Sessões</div>
+          <div id="activity-counts" class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">0 / 0</div>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <h4 class="font-bold text-slate-800 dark:text-white uppercase tracking-wider text-[11px]">Projetos Atuados</h4>
+        <div id="activity-projects-list" class="space-y-2"></div>
+      </div>
+
+      <div class="space-y-2">
+        <h4 class="font-bold text-slate-800 dark:text-white uppercase tracking-wider text-[11px]">Histórico Recente de Apontamentos</h4>
+        <div id="activity-entries-list" class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl"></div>
+      </div>
+    </div>
+
+    <div class="flex justify-end pt-3 border-t border-slate-200 dark:border-slate-800">
+      <button
+        type="button"
+        onclick="closeActivityModal()"
+        class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition-colors cursor-pointer"
+      >
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
 <% } %>
 
 <script>
@@ -440,10 +509,10 @@
     document.getElementById("modal-add-member").classList.add("hidden");
   }
 
-  function openEditModal(id, name, role, rate) {
+  function openEditModal(id, name, role, rateCents) {
     document.getElementById("edit-member-id").value = id;
     document.getElementById("edit-name").value = name;
-    document.getElementById("edit-rate").value = rate;
+    document.getElementById("edit-rate").value = ((Number(rateCents) || 0) / 100).toFixed(2);
 
     const roleSelect = document.getElementById("edit-role");
     if (role === "OWNER") {
@@ -465,6 +534,117 @@
     document.getElementById("modal-edit-member").classList.add("hidden");
   }
 
+  function formatCentsBRL(cents) {
+    const reais = (Number(cents) || 0) / 100;
+    return `R$ ${reais.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  function escapeText(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  async function openActivityModal(id, name) {
+    const modal = document.getElementById("modal-member-activity");
+    const loadingEl = document.getElementById("activity-loading");
+    const errorEl = document.getElementById("activity-error");
+    const contentEl = document.getElementById("activity-content");
+
+    document.getElementById("activity-member-name").textContent = name;
+    document.getElementById("activity-member-meta").textContent = "";
+    loadingEl.classList.remove("hidden");
+    errorEl.classList.add("hidden");
+    contentEl.classList.add("hidden");
+    modal.classList.remove("hidden");
+
+    try {
+      const res = await fetch(`/team/${id}/activity`);
+      const json = await res.json();
+      if (!res.ok || !json.success || !json.data) {
+        throw new Error(json.error?.message || "Erro ao carregar atividade do colaborador.");
+      }
+
+      const { member, summary, projects, recentEntries } = json.data;
+      document.getElementById("activity-member-meta").textContent =
+        `${member.email} • ${member.role} • Valor Hora: ${formatCentsBRL(member.hourlyRateCents)}/h`;
+      document.getElementById("activity-total-duration").textContent = summary.formattedTotalDuration || "00:00:00";
+      document.getElementById("activity-total-cost").textContent = formatCentsBRL(summary.totalCostCents);
+      document.getElementById("activity-counts").textContent = `${summary.projectsCount || 0} / ${summary.entriesCount || 0}`;
+
+      const projListEl = document.getElementById("activity-projects-list");
+      if (!projects || projects.length === 0) {
+        projListEl.innerHTML = '<div class="p-3 rounded-xl bg-slate-50 dark:bg-background text-slate-400">Nenhum projeto registrado até o momento.</div>';
+      } else {
+        projListEl.innerHTML = projects
+          .map(
+            (p) => `
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700/80">
+                <div>
+                  <div class="font-semibold text-slate-900 dark:text-white">${escapeText(p.projectName)}</div>
+                  ${p.clientName ? `<div class="text-[11px] text-slate-400">${escapeText(p.clientName)}</div>` : ""}
+                </div>
+                <div class="text-right font-mono">
+                  <div class="font-bold text-slate-800 dark:text-slate-200">${escapeText(p.formattedDuration)}</div>
+                  <div class="text-[11px] text-emerald-600 dark:text-emerald-400">${formatCentsBRL(p.costCents)} (${p.entriesCount}x)</div>
+                </div>
+              </div>
+            `,
+          )
+          .join("");
+      }
+
+      const entriesEl = document.getElementById("activity-entries-list");
+      if (!recentEntries || recentEntries.length === 0) {
+        entriesEl.innerHTML = '<div class="p-4 text-center text-slate-400">Nenhum apontamento concluído encontrado.</div>';
+      } else {
+        entriesEl.innerHTML = `
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-background border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase text-[10px]">
+              <tr>
+                <th class="px-3 py-2">Data</th>
+                <th class="px-3 py-2">Projeto</th>
+                <th class="px-3 py-2">Descrição</th>
+                <th class="px-3 py-2">Duração</th>
+                <th class="px-3 py-2 text-right">Custo</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+              ${recentEntries
+                .map((e) => {
+                  const dt = e.start ? new Date(e.start).toLocaleDateString("pt-BR") : "-";
+                  return `
+                    <tr>
+                      <td class="px-3 py-2 font-mono text-[11px] text-slate-500">${escapeText(dt)}</td>
+                      <td class="px-3 py-2 font-medium text-slate-800 dark:text-slate-200">${escapeText(e.project ? e.project.name : "Sem Projeto")}</td>
+                      <td class="px-3 py-2 text-slate-600 dark:text-slate-300">${escapeText(e.description || "(Sem descrição)")}</td>
+                      <td class="px-3 py-2 font-mono font-semibold">${escapeText(e.formattedDuration)}</td>
+                      <td class="px-3 py-2 text-right font-mono text-emerald-600 dark:text-emerald-400">${formatCentsBRL(e.amountCents)}</td>
+                    </tr>
+                  `;
+                })
+                .join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      loadingEl.classList.add("hidden");
+      contentEl.classList.remove("hidden");
+    } catch (err) {
+      loadingEl.classList.add("hidden");
+      errorEl.textContent = err?.message || "Erro ao carregar atividade do colaborador.";
+      errorEl.classList.remove("hidden");
+    }
+  }
+
+  function closeActivityModal() {
+    document.getElementById("modal-member-activity").classList.add("hidden");
+  }
+
   function openDeleteModal(id, name) {
     document.getElementById("delete-member-id").value = id;
     document.getElementById("delete-member-name").textContent = name;
@@ -475,6 +655,15 @@
   function closeDeleteModal() {
     document.getElementById("modal-delete-member").classList.add("hidden");
   }
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeAddModal();
+      closeEditModal();
+      closeActivityModal();
+      closeDeleteModal();
+    }
+  });
 
   async function handleAddSubmit(event) {
     const btn = document.getElementById("btn-add-submit");

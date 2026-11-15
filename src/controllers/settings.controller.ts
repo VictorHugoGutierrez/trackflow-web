@@ -1,22 +1,23 @@
 import { Request, Response } from "express";
 import axios from "axios";
+import { reaisToCents } from "../utils/formatters.js";
 
 const API_URL = process.env.API_URL || "http://localhost:3333";
 
 export class SettingsController {
   static async render(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
-    const tab = req.query.tab || "profile";
+    const tab = req.query.tab === "preferences" ? "preferences" : "profile";
 
     let userMe: any = {
-      name: req.user?.name || req.user?.email.split("@")[0],
+      name: req.user?.name || "Usuário",
       email: req.user?.email,
       role: req.user?.role,
       settings: {
         theme: "dark",
         pomodoroWork: 25,
         pomodoroBreak: 5,
-        hourlyRate: 150.00,
+        hourlyRateCents: 0,
         currency: "BRL",
       },
       tenant: {
@@ -69,8 +70,20 @@ export class SettingsController {
             Cookie: `trackflow_session=${token}`,
           },
           timeout: 4000,
-        }
+        },
       );
+
+      const updatedToken = response.data?.data?.token;
+      if (updatedToken) {
+        const isProduction = process.env.NODE_ENV === "production";
+        res.cookie("trackflow_session", updatedToken, {
+          path: "/",
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
 
       if (wantsJson) return res.status(200).json(response.data);
       return res.redirect("/settings?tab=profile&success=Perfil+atualizado+com+sucesso!");
@@ -93,7 +106,10 @@ export class SettingsController {
           theme: theme || undefined,
           pomodoroWork: pomodoroWork ? Number(pomodoroWork) : undefined,
           pomodoroBreak: pomodoroBreak ? Number(pomodoroBreak) : undefined,
-          hourlyRate: hourlyRate !== undefined && hourlyRate !== "" ? Number(hourlyRate) : undefined,
+          hourlyRateCents:
+            hourlyRate !== undefined && String(hourlyRate).trim() !== ""
+              ? reaisToCents(hourlyRate)
+              : undefined,
           currency: currency || undefined,
         },
         {
@@ -102,7 +118,7 @@ export class SettingsController {
             Cookie: `trackflow_session=${token}`,
           },
           timeout: 4000,
-        }
+        },
       );
 
       if (wantsJson) return res.status(200).json(response.data);

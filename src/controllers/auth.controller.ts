@@ -110,6 +110,7 @@ export class AuthController {
       tenantId: isSuperAdmin ? null : "tenant-dev-id",
       role: isSuperAdmin ? "SUPER_ADMIN" : "OWNER",
       email: isSuperAdmin ? "admin@trackflow.com" : "owner@empresa.com",
+      name: isSuperAdmin ? "Super Admin" : "Administrador",
     };
 
     const token = jwt.sign(payload, jwtSecret, { expiresIn: "7d" });
