@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import axios from "axios";
+import { calculateAmountCents, reaisToCents } from "../utils/formatters.js";
 
 const API_URL = process.env.API_URL || "http://localhost:3333";
 
@@ -7,8 +8,8 @@ export interface Invoice {
   id: string;
   clientId: string;
   monthRef: string;
-  totalHours: number;
-  totalValue: number;
+  durationSeconds: number;
+  amountCents: number;
   status: "pendente" | "pago" | "cancelado";
   aiSummary?: string | null;
   pdfUrl?: string | null;
@@ -28,7 +29,7 @@ export class ReportController {
     let clients: any[] = [];
     let invoices: Invoice[] = [];
     let timeEntries: any[] = [];
-    let hourlyRate = 150.00;
+    let hourlyRateCents = 0;
     let currency = "BRL";
 
     const headers = token
@@ -40,7 +41,6 @@ export class ReportController {
 
     try {
       if (token) {
-        // Obter data de início e fim do mês selecionado
         const [yearStr, monthStr] = selectedMonth.split("-");
         const year = Number(yearStr) || now.getFullYear();
         const monthIndex = (Number(monthStr) || (now.getMonth() + 1)) - 1;
@@ -78,10 +78,10 @@ export class ReportController {
 
         if (resMe.status === "fulfilled" && resMe.value.data?.success) {
           const userMe = resMe.value.data.data;
-          if (userMe.settings?.hourlyRate) {
-            hourlyRate = Number(userMe.settings.hourlyRate);
+          if (userMe?.settings?.hourlyRateCents !== undefined) {
+            hourlyRateCents = Number(userMe.settings.hourlyRateCents) || 0;
           }
-          if (userMe.settings?.currency) {
+          if (userMe?.settings?.currency) {
             currency = userMe.settings.currency;
           }
         }
@@ -90,19 +90,18 @@ export class ReportController {
       console.error("Erro ao carregar dados de relatórios:", err.message);
     }
 
-    // Calcular totais
     let totalSeconds = 0;
     let totalBillableSeconds = 0;
+    let totalAmountCents = 0;
 
     timeEntries.forEach((entry) => {
-      const dur = entry.duration || 0;
+      const dur = entry.durationSeconds || 0;
       totalSeconds += dur;
-      if (entry.billable) totalBillableSeconds += dur;
+      if (entry.billable) {
+        totalBillableSeconds += dur;
+        totalAmountCents += calculateAmountCents(dur, hourlyRateCents);
+      }
     });
-
-    const totalHours = Number((totalSeconds / 3600).toFixed(2));
-    const totalBillableHours = Number((totalBillableSeconds / 3600).toFixed(2));
-    const totalValue = Number((totalBillableHours * hourlyRate).toFixed(2));
 
     return res.render("reports/index", {
       pageTitle: "TrackFlow - Relatórios & Faturas",
@@ -113,10 +112,10 @@ export class ReportController {
       timeEntries,
       selectedMonth,
       selectedClientId,
-      totalHours,
-      totalBillableHours,
-      hourlyRate,
-      totalValue,
+      totalSeconds,
+      totalBillableSeconds,
+      hourlyRateCents,
+      totalAmountCents,
       currency,
       success: req.query.success || null,
       error: req.query.error || null,
@@ -136,8 +135,8 @@ export class ReportController {
             Authorization: `Bearer ${token}`,
             Cookie: `trackflow_session=${token}`,
           },
-          timeout: 25000, // Ollama pode demorar alguns segundos
-        }
+          timeout: 25000,
+        },
       );
 
       return res.json(response.data);
@@ -149,8 +148,23 @@ export class ReportController {
 
   static async createInvoice(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
-    const { clientId, monthRef, totalHours, totalValue, aiSummary, sendEmail, recipientEmail } = req.body;
+    const {
+      clientId,
+      monthRef,
+      durationSeconds,
+      amountCents,
+      totalValue,
+      aiSummary,
+      sendEmail,
+      recipientEmail,
+    } = req.body;
     const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    const resolvedDurationSeconds = Math.max(0, Math.round(Number(durationSeconds) || 0));
+    const resolvedAmountCents =
+      amountCents !== undefined && amountCents !== null && amountCents !== ""
+        ? Math.max(0, Math.round(Number(amountCents) || 0))
+        : reaisToCents(totalValue);
 
     try {
       const response = await axios.post(
@@ -158,8 +172,8 @@ export class ReportController {
         {
           clientId,
           monthRef,
-          totalHours: Number(totalHours) || 0,
-          totalValue: Number(totalValue) || 0,
+          durationSeconds: resolvedDurationSeconds,
+          amountCents: resolvedAmountCents,
           aiSummary: aiSummary || undefined,
           sendEmail: sendEmail === "true" || sendEmail === true || sendEmail === "on",
           recipientEmail: recipientEmail || undefined,
@@ -170,7 +184,7 @@ export class ReportController {
             Cookie: `trackflow_session=${token}`,
           },
           timeout: 6000,
-        }
+        },
       );
 
       if (wantsJson) return res.status(201).json(response.data);
@@ -198,7 +212,7 @@ export class ReportController {
             Cookie: `trackflow_session=${token}`,
           },
           timeout: 4000,
-        }
+        },
       );
 
       if (wantsJson) return res.status(200).json(response.data);

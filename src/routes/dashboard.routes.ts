@@ -15,6 +15,5 @@ dashboardRoutes.patch("/time-entries/:id", DashboardController.updateTimeEntry);
 dashboardRoutes.post("/time-entries/:id/delete", DashboardController.deleteTimeEntry);
 dashboardRoutes.delete("/time-entries/:id", DashboardController.deleteTimeEntry);
 
-// Quick projects & tasks
+// Quick project creation
 dashboardRoutes.post("/projects/quick", DashboardController.createProject);
-dashboardRoutes.post("/tasks/quick", DashboardController.createTask);

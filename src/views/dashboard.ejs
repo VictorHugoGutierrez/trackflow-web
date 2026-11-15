@@ -73,10 +73,10 @@
 
       <!-- Operational Metrics Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Horas Hoje -->
+        <!-- Tempo Hoje -->
         <div class="p-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
-            <span class="text-xs font-medium">Horas Hoje</span>
+            <span class="text-xs font-medium">Tempo Hoje</span>
             <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" stroke-width="2"/>
@@ -84,8 +84,8 @@
               </svg>
             </div>
           </div>
-          <div class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-            <%= metrics ? metrics.hoursToday : '0.0' %>h
+          <div class="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
+            <%= metrics ? metrics.formattedTimeToday : '00:00:00' %>
           </div>
           <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
             <span>Total acumulado no dia</span>
@@ -172,7 +172,6 @@
               <tr>
                 <th class="px-4 py-3">Atividade / Descrição</th>
                 <th class="px-4 py-3">Projeto</th>
-                <th class="px-4 py-3">Tarefa</th>
                 <th class="px-4 py-3">Início &rarr; Término</th>
                 <th class="px-4 py-3">Duração</th>
                 <th class="px-4 py-3">Faturável</th>
@@ -182,7 +181,7 @@
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
               <% if (typeof timeEntries === 'undefined' || !timeEntries || timeEntries.length === 0) { %>
                 <tr>
-                  <td colspan="7" class="px-4 py-12 text-center text-slate-400">
+                  <td colspan="6" class="px-4 py-12 text-center text-slate-400">
                     <div class="flex flex-col items-center justify-center space-y-2">
                       <svg class="w-8 h-8 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
@@ -196,14 +195,11 @@
               <% } else { %>
                 <% timeEntries.forEach(function(entry) { %>
                   <%
-                    const durSeconds = entry.duration || 0;
-                    const durH = Math.floor(durSeconds / 3600);
-                    const durM = Math.floor((durSeconds % 3600) / 60);
-                    const durFormatted = durH > 0 ? `${durH}h ${durM}m` : `${durM}m ${durSeconds % 60}s`;
+                    const durFormatted = formatDuration(entry.durationSeconds);
                     const startTimeFormatted = new Date(entry.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                     const endTimeFormatted = entry.end ? new Date(entry.end).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Em andamento';
                   %>
-                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer" onclick="openEditModal('<%= entry.id %>', '<%= esc(entry.description || '') %>', '<%= entry.projectId || '' %>', '<%= entry.taskId || '' %>', '<%= entry.start %>', '<%= entry.end || '' %>', <%= entry.billable ? 'true' : 'false' %>)">
+                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer" onclick="openEditModal('<%= entry.id %>', '<%= esc(entry.description || '') %>', '<%= entry.projectId || '' %>', '<%= entry.start %>', '<%= entry.end || '' %>', <%= entry.billable ? 'true' : 'false' %>)">
                     <td class="px-4 py-3.5 font-medium text-slate-900 dark:text-white">
                       <div class="flex items-center gap-2">
                         <% if (!entry.end) { %>
@@ -220,9 +216,6 @@
                       <% } else { %>
                         <span class="text-slate-400 dark:text-slate-500">-</span>
                       <% } %>
-                    </td>
-                    <td class="px-4 py-3.5 text-slate-600 dark:text-slate-400">
-                      <%= entry.task ? entry.task.title : '-' %>
                     </td>
                     <td class="px-4 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
                       <%= startTimeFormatted %> &rarr; <%= endTimeFormatted %>
@@ -248,7 +241,7 @@
                     <td class="px-4 py-3.5 text-right space-x-1" onclick="event.stopPropagation()">
                       <button
                         type="button"
-                        onclick="openEditModal('<%= entry.id %>', '<%= esc(entry.description || '') %>', '<%= entry.projectId || '' %>', '<%= entry.taskId || '' %>', '<%= entry.start %>', '<%= entry.end || '' %>', <%= entry.billable ? 'true' : 'false' %>)"
+                        onclick="openEditModal('<%= entry.id %>', '<%= esc(entry.description || '') %>', '<%= entry.projectId || '' %>', '<%= entry.start %>', '<%= entry.end || '' %>', <%= entry.billable ? 'true' : 'false' %>)"
                         class="p-1.5 text-slate-400 hover:text-emerald-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         title="Editar entrada"
                       >
@@ -305,36 +298,21 @@
         />
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Projeto</label>
-          <select
-            name="projectId"
-            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="">Sem projeto</option>
-            <% if (projects && projects.length > 0) { %>
-              <% projects.forEach(function(p) { %>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Projeto</label>
+        <select
+          name="projectId"
+          class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="">Sem projeto</option>
+          <% if (projects && projects.length > 0) { %>
+            <% projects.forEach(function(p) { %>
+              <% if (p.status !== 'COMPLETED') { %>
                 <option value="<%= p.id %>"><%= p.name %></option>
-              <% }); %>
-            <% } %>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tarefa</label>
-          <select
-            name="taskId"
-            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="">Sem tarefa</option>
-            <% if (tasks && tasks.length > 0) { %>
-              <% tasks.forEach(function(t) { %>
-                <option value="<%= t.id %>"><%= t.title %></option>
-              <% }); %>
-            <% } %>
-          </select>
-        </div>
+              <% } %>
+            <% }); %>
+          <% } %>
+        </select>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -413,38 +391,24 @@
         />
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Projeto</label>
-          <select
-            id="edit-project"
-            name="projectId"
-            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="">Sem projeto</option>
-            <% if (projects && projects.length > 0) { %>
-              <% projects.forEach(function(p) { %>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Projeto</label>
+        <select
+          id="edit-project"
+          name="projectId"
+          class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="">Sem projeto</option>
+          <% if (projects && projects.length > 0) { %>
+            <% projects.forEach(function(p) { %>
+              <% if (p.status === 'COMPLETED') { %>
+                <option value="<%= p.id %>" disabled hidden><%= p.name %> (Concluído)</option>
+              <% } else { %>
                 <option value="<%= p.id %>"><%= p.name %></option>
-              <% }); %>
-            <% } %>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tarefa</label>
-          <select
-            id="edit-task"
-            name="taskId"
-            class="w-full px-3 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="">Sem tarefa</option>
-            <% if (tasks && tasks.length > 0) { %>
-              <% tasks.forEach(function(t) { %>
-                <option value="<%= t.id %>"><%= t.title %></option>
-              <% }); %>
-            <% } %>
-          </select>
-        </div>
+              <% } %>
+            <% }); %>
+          <% } %>
+        </select>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -519,14 +483,13 @@
     document.getElementById('modal-manual').classList.add('hidden');
   }
 
-  function openEditModal(id, desc, projId, taskId, start, end, billable) {
+  function openEditModal(id, desc, projId, start, end, billable) {
     const modal = document.getElementById('modal-edit');
     const form = document.getElementById('form-edit-entry');
     form.action = `/time-entries/${id}/update`;
 
     document.getElementById('edit-description').value = desc || '';
     document.getElementById('edit-project').value = projId || '';
-    document.getElementById('edit-task').value = taskId || '';
     document.getElementById('edit-start').value = formatIsoForInput(start);
     document.getElementById('edit-end').value = formatIsoForInput(end);
     document.getElementById('edit-billable').checked = billable === true;
