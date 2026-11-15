@@ -13,7 +13,6 @@
     <%- include('partials/tenant-header') %>
 
     <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
-      <!-- Feedback Messages -->
       <% if (typeof success !== 'undefined' && success) { %>
         <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
           <div class="flex items-center gap-2">
@@ -40,7 +39,6 @@
         </div>
       <% } %>
 
-      <!-- Top Section: Overview & Action Bar -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
@@ -71,9 +69,7 @@
         </div>
       </div>
 
-      <!-- Operational Metrics Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Tempo Hoje -->
         <div class="p-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span class="text-xs font-medium">Tempo Hoje</span>
@@ -92,7 +88,6 @@
           </div>
         </div>
 
-        <!-- Aproveitamento Faturável -->
         <div class="p-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span class="text-xs font-medium">Faturamento Estimado</span>
@@ -110,7 +105,6 @@
           </div>
         </div>
 
-        <!-- Sessões de Foco / Apontamentos -->
         <div class="p-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-colors">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span class="text-xs font-medium">Sessões Realizadas</span>
@@ -128,7 +122,6 @@
           </div>
         </div>
 
-        <!-- Projetos Vinculados -->
         <div class="p-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-purple-500/30 transition-colors">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
             <span class="text-xs font-medium">Projetos Ativos</span>
@@ -147,7 +140,6 @@
         </div>
       </div>
 
-      <!-- Feed de Apontamentos Recentes (DataTable) -->
       <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm space-y-4 p-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div>
@@ -271,7 +263,6 @@
   </div>
 </div>
 
-<!-- Modal 1: Adicionar Apontamento Manual -->
 <div id="modal-manual" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -364,7 +355,6 @@
   </div>
 </div>
 
-<!-- Modal 2: Editar Apontamento -->
 <div id="modal-edit" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -458,7 +448,6 @@
   </div>
 </div>
 
-<!-- Modal 3: Deletar Apontamento Confirmação -->
 <form id="form-delete-entry" method="POST" class="hidden"></form>
 
 <script>
@@ -509,7 +498,6 @@
     }
   }
 
-  // Fechar modais ao teclar Escape
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeManualModal();

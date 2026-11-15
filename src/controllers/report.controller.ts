@@ -50,9 +50,6 @@ function getMonthDateRange(monthStr: string) {
 }
 
 export class ReportController {
-  /**
-   * SSR: Renderiza a tela principal de Relatórios & Faturas (/reports)
-   */
   static async render(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const now = new Date();
@@ -246,7 +243,6 @@ export class ReportController {
       }
     });
 
-    // Caso /api/reports/summary não retorne projetos agrupados, agrupa localmente via timeEntries + projects
     if (summaryProjects.length === 0 && timeEntries.length > 0) {
       const projectById = new Map<string, any>();
       projects.forEach((p: any) => {
@@ -372,10 +368,6 @@ export class ReportController {
     });
   }
 
-  /**
-   * 1. GET /api/reports/summary (e /reports/summary)
-   * Retorna soma de horas e valor financeiro agrupados por projeto.
-   */
   static async getSummary(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { clientId, projectId, startDate, endDate, hourlyRate, month } = req.query;
@@ -419,10 +411,6 @@ export class ReportController {
     }
   }
 
-  /**
-   * 2. POST /api/reports/ai-insight (e /reports/ai-summary)
-   * Envia os apontamentos filtrados para o Ollama Cloud (gpt-oss:120b) e retorna o texto gerado.
-   */
   static async generateAiSummary(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { clientId, projectId, monthRef, startDate, endDate, prompt, activities } =
@@ -461,13 +449,12 @@ export class ReportController {
         },
         {
           headers: requestHeaders,
-          timeout: 60000, // Ollama Cloud gpt-oss:120b stream
+          timeout: 60000,
         }
       );
 
       return res.status(200).json(response.data);
     } catch (err: any) {
-      // Fallback para endpoint legado /api/reports/ai-summary se /ai-insight ainda não estiver ativo na API
       if (err.response?.status === 404 && clientId) {
         try {
           const fallbackRes = await axios.post(
@@ -492,10 +479,6 @@ export class ReportController {
     }
   }
 
-  /**
-   * 3. POST /api/invoices/generate (e /reports/invoices)
-   * Gera a fatura (Dados + Resumo IA + HTML/PDF base64) e salva no banco.
-   */
   static async createInvoice(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const {
@@ -591,7 +574,6 @@ export class ReportController {
       if (wantsJson) return res.status(201).json(response.data);
       return res.redirect("/reports?success=Fatura+gerada+com+sucesso!");
     } catch (err: any) {
-      // Fallback para endpoint /api/invoices caso /generate ainda não exista na API
       if (err.response?.status === 404) {
         try {
           const fallbackRes = await axios.post(`${API_URL}/api/invoices`, payload, {
@@ -622,10 +604,6 @@ export class ReportController {
     }
   }
 
-  /**
-   * 4. POST /api/invoices/:id/send (e /reports/invoices/:id/send)
-   * Dispara a fatura gerada para o e-mail do cliente via Resend.
-   */
   static async sendInvoice(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { id } = req.params;
@@ -669,10 +647,6 @@ export class ReportController {
     }
   }
 
-  /**
-   * 5. PATCH /api/invoices/:id/status (e /reports/invoices/:id/status)
-   * Altera o status do pagamento (pendente, pago, cancelado).
-   */
   static async updateInvoiceStatus(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { id } = req.params;

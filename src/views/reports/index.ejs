@@ -13,7 +13,6 @@
     <%- include('../partials/tenant-header') %>
 
     <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
-      <!-- Feedback Messages -->
       <% if (typeof success !== 'undefined' && success) { %>
         <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2">
@@ -40,7 +39,6 @@
         </div>
       <% } %>
 
-      <!-- Top Section: Header & Filters -->
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-2.5">
@@ -54,7 +52,6 @@
           </p>
         </div>
 
-        <!-- Filter Form (GET /reports -> GET /api/reports/summary) -->
         <form method="GET" action="/reports" class="flex flex-wrap items-center gap-2">
           <div>
             <input
@@ -120,10 +117,8 @@
         </form>
       </div>
 
-      <!-- Hero Card: Painel de Cálculo Financeiro & IA -->
       <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm relative overflow-hidden">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-100 dark:border-slate-800/80">
-          <!-- Calculation Equation Display -->
           <div class="space-y-1.5">
             <div class="flex items-center gap-2">
               <span class="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
@@ -148,9 +143,7 @@
             </p>
           </div>
 
-          <!-- Actions: IA Insight & Create Invoice -->
           <div class="flex flex-wrap items-center gap-3">
-            <!-- Botão 2: POST /api/reports/ai-insight -->
             <button
               type="button"
               id="btn-ai-summary"
@@ -164,7 +157,6 @@
               <span id="ai-btn-text">✨ Gerar Insight com IA (gpt-oss:120b)</span>
             </button>
 
-            <!-- Botão 3: POST /api/invoices/generate -->
             <button
               type="button"
               onclick="openInvoiceModal()"
@@ -178,7 +170,6 @@
           </div>
         </div>
 
-        <!-- KPI Summary Mini-Cards -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-5">
           <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-background/60 border border-slate-200/70 dark:border-slate-800">
             <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Tempo Total</span>
@@ -198,7 +189,6 @@
           </div>
         </div>
 
-        <!-- AI Summary Live Preview Card (exibido ao chamar POST /api/reports/ai-insight) -->
         <div id="ai-summary-card" class="mt-5 p-5 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs hidden">
           <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-purple-500/15">
             <div class="flex items-center gap-2">
@@ -233,7 +223,6 @@
         </div>
       </div>
 
-      <!-- Table 1: Resumo de Horas e Faturamento por Projeto (GET /api/reports/summary) -->
       <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div>
@@ -335,7 +324,6 @@
         </div>
       </div>
 
-      <!-- Table 2: Histórico de Faturas Emitidas (POST /api/invoices/generate, POST /send, PATCH /status) -->
       <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div>
@@ -424,7 +412,6 @@
                     </td>
                     <td class="px-4 py-3.5 text-right">
                       <div class="flex flex-wrap items-center justify-end gap-1.5">
-                        <!-- Ver Documento PDF/HTML (pdfUrl) -->
                         <% if (inv.pdfUrl) { %>
                           <button
                             type="button"
@@ -439,7 +426,6 @@
                           </button>
                         <% } %>
 
-                        <!-- Ver Resumo IA -->
                         <% if (inv.aiSummary) { %>
                           <button
                             type="button"
@@ -454,7 +440,6 @@
                           </button>
                         <% } %>
 
-                        <!-- Enviar por E-mail via Resend (POST /api/invoices/:id/send) -->
                         <button
                           type="button"
                           data-id="<%= inv.id %>"
@@ -468,7 +453,6 @@
                           ✉️ Enviar E-mail
                         </button>
 
-                        <!-- Alterar Status (PATCH /api/invoices/:id/status) -->
                         <select
                           aria-label="Alterar status da fatura"
                           onchange="changeInvoiceStatus('<%= inv.id %>', this.value)"
@@ -488,7 +472,6 @@
         </div>
       </div>
 
-      <!-- Table 3: Detalhamento de Atividades do Período (sem coluna Tarefa) -->
       <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div>
@@ -570,7 +553,6 @@
   </div>
 </div>
 
-<!-- MODAL 1: Gerar e Enviar Fatura (POST /api/invoices/generate) -->
 <div id="modal-invoice" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto animate-scale-in">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -698,7 +680,6 @@
   </div>
 </div>
 
-<!-- MODAL 2: Disparar Fatura por E-mail via Resend (POST /api/invoices/:id/send) -->
 <div id="modal-send-email" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -747,7 +728,6 @@
   </div>
 </div>
 
-<!-- MODAL 3: Visualizar Resumo Executivo IA da Fatura -->
 <div id="modal-view-ai" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -767,7 +747,6 @@
   </div>
 </div>
 
-<!-- MODAL 4: Visualizar Documento da Fatura (pdfUrl Base64 HTML) -->
 <div id="modal-view-pdf" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-3xl w-full p-5 shadow-2xl space-y-4">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -792,7 +771,6 @@
   </div>
 </div>
 
-<!-- Form Auxiliar para Alteração de Status (PATCH /reports/invoices/:id/status) -->
 <form id="form-status-update" method="POST" class="hidden">
   <input type="hidden" name="status" id="form-status-input" value="pago" />
 </form>
@@ -878,7 +856,6 @@
     }
   }
 
-  // 1. Consulta dinâmica a GET /api/reports/summary quando o cliente ou mês muda no modal de fatura
   async function onInvoiceClientOrMonthChange() {
     const select = document.getElementById('invoice-client-select');
     const monthInput = document.getElementById('invoice-month-input');
@@ -930,7 +907,6 @@
     }
   }
 
-  // 2. Dispara POST /api/reports/ai-insight no Hero Card
   async function triggerAiSummary() {
     const clientSelect = document.getElementById('filter-client');
     const projectSelect = document.getElementById('filter-project');
@@ -991,7 +967,6 @@
     }
   }
 
-  // Dispara POST /api/reports/ai-insight direto de dentro do Modal de Fatura
   async function generateAiInsideModal() {
     const clientSelect = document.getElementById('invoice-client-select');
     const monthInput = document.getElementById('invoice-month-input');
@@ -1031,7 +1006,6 @@
     }
   }
 
-  // 5. Atualiza status da fatura via PATCH /api/invoices/:id/status (ou fallback form POST)
   async function changeInvoiceStatus(id, newStatus) {
     try {
       const res = await fetch(`/api/invoices/${id}/status`, {

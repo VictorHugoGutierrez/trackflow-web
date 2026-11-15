@@ -1,8 +1,6 @@
-<!-- Fixed Top Header with Immortal Timer -->
 <header class="w-full border-b border-slate-200 dark:border-slate-800 bg-card/90 backdrop-blur sticky top-0 z-20">
   <div class="px-4 lg:px-6 h-16 flex items-center justify-between gap-3">
     
-    <!-- Left: Mobile Menu Toggle & Workspace Breadcrumb -->
     <div class="flex items-center gap-3">
       <button
         type="button"
@@ -24,9 +22,7 @@
       </div>
     </div>
 
-    <!-- Center: The Immortal Zero-Friction Timer -->
     <div class="flex items-center gap-2 flex-1 max-w-2xl mx-auto justify-center">
-      <!-- Quick Description Input -->
       <div class="relative flex-1 max-w-xs hidden md:block">
         <input
           type="text"
@@ -36,7 +32,6 @@
         />
       </div>
 
-      <!-- Quick Project Select -->
       <div class="hidden lg:block">
         <select
           id="global-timer-project"
@@ -53,7 +48,6 @@
         </select>
       </div>
 
-      <!-- Pomodoro Selector Toggle -->
       <button
         type="button"
         id="global-pomodoro-toggle"
@@ -65,14 +59,12 @@
         <span id="pomodoro-label" class="hidden xl:inline">Normal</span>
       </button>
 
-      <!-- Digital Clock Display -->
       <div class="px-3 py-1 bg-slate-100 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center min-w-[90px] shadow-inner">
         <span id="global-timer-clock" class="text-sm md:text-base font-bold font-mono text-slate-900 dark:text-white tracking-widest">
           00:00:00
         </span>
       </div>
 
-      <!-- Play / Stop Button -->
       <button
         type="button"
         id="global-timer-btn"
@@ -89,9 +81,7 @@
       </button>
     </div>
 
-    <!-- Right: Theme, Notifications, Avatar -->
     <div class="flex items-center gap-2 sm:gap-3">
-      <!-- Theme Switcher -->
       <button
         type="button"
         onclick="toggleTheme()"
@@ -106,7 +96,6 @@
         </svg>
       </button>
 
-      <!-- User Avatar & Profile Dropdown -->
       <%
         const rawUserName = (typeof user !== 'undefined' && user && user.name) ? String(user.name).trim() : '';
         const userName = rawUserName || 'Usuário';
@@ -129,7 +118,6 @@
   </div>
 </header>
 
-<!-- Global Timer JavaScript Controller -->
 <script>
   (function() {
     let timerInterval = null;
@@ -137,7 +125,7 @@
     let activeEntryId = null;
     let timerStartTime = null;
     let isPomodoro = localStorage.getItem('trackflow-pomodoro-mode') === 'true';
-    let pomodoroDuration = 25 * 60; // 25 min padrão
+    let pomodoroDuration = 25 * 60;
 
     const clockEl = document.getElementById('global-timer-clock');
     const descEl = document.getElementById('global-timer-desc');
@@ -179,14 +167,13 @@
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.5);
       } catch (e) {
-        // Ignora caso autoplay esteja bloqueado
       }
     }
 
@@ -244,7 +231,6 @@
 
       try {
         if (!isRunning) {
-          // Iniciar Apontamento
           const desc = descEl ? descEl.value.trim() : '';
           const projectId = projectEl ? projectEl.value : '';
 
@@ -270,7 +256,6 @@
             alert(data.error?.message || 'Não foi possível iniciar o cronômetro.');
           }
         } else {
-          // Parar Apontamento
           const desc = descEl ? descEl.value.trim() : '';
           const projectId = projectEl ? projectEl.value : '';
 
@@ -284,7 +269,6 @@
           if (data.success) {
             renderStoppedState();
             window.dispatchEvent(new CustomEvent('trackflow:timer-stopped', { detail: data.data }));
-            // Se estiver na tela de dashboard, recarrega para atualizar tabela
             if (window.location.pathname === '/dashboard') {
               window.location.reload();
             }
@@ -300,10 +284,8 @@
       }
     };
 
-    // Inicialização ao carregar página
     updatePomodoroUI();
 
-    // 1. Tenta carregar do localStorage
     const saved = localStorage.getItem('trackflow-active-timer');
     if (saved) {
       try {
@@ -316,7 +298,6 @@
       }
     }
 
-    // 2. Se houver activeEntry passado pelo SSR na página atual
     <% if (typeof activeEntry !== 'undefined' && activeEntry) { %>
       const ssrStartTime = new Date(<%- JSON.stringify(activeEntry.start) %>).getTime();
       const ssrDesc = <%- JSON.stringify(activeEntry.description || "") %>;

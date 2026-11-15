@@ -3,18 +3,15 @@ import { ClientProjectController } from "../controllers/client-project.controlle
 
 export const clientProjectRoutes = Router();
 
-// Render
 clientProjectRoutes.get("/projects", ClientProjectController.render);
 clientProjectRoutes.get("/clients", (_req, res) => res.redirect("/projects?tab=clients"));
 
-// Clients Actions
 clientProjectRoutes.post("/clients", ClientProjectController.createClient);
 clientProjectRoutes.post("/clients/:id/update", ClientProjectController.updateClient);
 clientProjectRoutes.patch("/clients/:id", ClientProjectController.updateClient);
 clientProjectRoutes.post("/clients/:id/delete", ClientProjectController.deleteClient);
 clientProjectRoutes.delete("/clients/:id", ClientProjectController.deleteClient);
 
-// Projects Actions
 clientProjectRoutes.post("/projects", ClientProjectController.createProject);
 clientProjectRoutes.post("/projects/:id/update", ClientProjectController.updateProject);
 clientProjectRoutes.patch("/projects/:id", ClientProjectController.updateProject);

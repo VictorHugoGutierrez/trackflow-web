@@ -4,21 +4,19 @@
 
 @layer base {
   :root {
-    /* Tema Claro Original do TrackFlow */
-    --background: 210 40% 96%; /* #F1F5F9 */
-    --foreground: 222.2 47.4% 11.2%; /* #0F172A */
-    --card: 0 0% 100%; /* #FFFFFF */
-    --play: 161 94% 30%; /* #059669 */
-    --stop: 0 72% 51%; /* #DC2626 */
+    --background: 210 40% 96%;
+    --foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 100%;
+    --play: 161 94% 30%;
+    --stop: 0 72% 51%;
   }
 
   .dark {
-    /* Tema Escuro Original do TrackFlow */
-    --background: 222.2 47.4% 11.2%; /* #0F172A */
-    --foreground: 210 40% 98%; /* #F8FAFC */
-    --card: 215 27.9% 16.9%; /* #1E293B */
-    --play: 160 84% 39%; /* #10B981 */
-    --stop: 0 84% 60%; /* #EF4444 */
+    --background: 222.2 47.4% 11.2%;
+    --foreground: 210 40% 98%;
+    --card: 215 27.9% 16.9%;
+    --play: 160 84% 39%;
+    --stop: 0 84% 60%;
   }
 
   body {

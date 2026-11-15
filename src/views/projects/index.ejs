@@ -16,7 +16,6 @@
     <%- include('../partials/tenant-header') %>
 
     <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
-      <!-- Flash Feedback Alerts -->
       <% if (typeof success !== 'undefined' && success) { %>
         <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
           <div class="flex items-center gap-2">
@@ -43,7 +42,6 @@
         </div>
       <% } %>
 
-      <!-- Top Header & Tabs Navigation -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
@@ -55,7 +53,6 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <!-- Tab Navigation Switcher -->
           <div class="flex items-center p-1 bg-slate-200/80 dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-slate-700/80">
             <a
               href="/projects?tab=projects"
@@ -71,7 +68,6 @@
             </a>
           </div>
 
-          <!-- Main CTA based on Tab -->
           <% if (currentTab === 'projects') { %>
             <button
               type="button"
@@ -98,9 +94,7 @@
         </div>
       </div>
 
-      <!-- TAB 1: PROJETOS -->
       <% if (currentTab === 'projects') { %>
-        <!-- Project Metrics Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total de Projetos</div>
@@ -127,7 +121,6 @@
           </div>
         </div>
 
-        <!-- Projects Table -->
         <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
             <div>
@@ -275,9 +268,7 @@
           </div>
         </div>
 
-      <!-- TAB 2: CLIENTES -->
       <% } else { %>
-        <!-- Client Metrics Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total de Clientes</div>
@@ -298,7 +289,6 @@
           </div>
         </div>
 
-        <!-- Clientes Table -->
         <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
             <div>
@@ -396,7 +386,6 @@
   </div>
 </div>
 
-<!-- MODAL: Novo Projeto -->
 <div id="modal-new-project" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -476,7 +465,6 @@
   </div>
 </div>
 
-<!-- MODAL: Editar Projeto -->
 <div id="modal-edit-project" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -560,7 +548,6 @@
   </div>
 </div>
 
-<!-- MODAL: Novo Cliente (Slide-over/Modal) -->
 <div id="modal-new-client" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -598,7 +585,6 @@
   </div>
 </div>
 
-<!-- MODAL: Editar Cliente -->
 <div id="modal-edit-client" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -643,7 +629,6 @@
   </div>
 </div>
 
-<!-- Forms Ocultos para Exclusões -->
 <form id="form-delete-project" method="POST" class="hidden"></form>
 <form id="form-delete-client" method="POST" class="hidden"></form>
 
@@ -657,7 +642,6 @@
     }
   }
 
-  // Projetos Modais
   function openNewProjectModal() {
     document.getElementById('modal-new-project').classList.remove('hidden');
   }
@@ -690,7 +674,6 @@
     }
   }
 
-  // Clientes Modais
   function openNewClientModal() {
     document.getElementById('modal-new-client').classList.remove('hidden');
   }
@@ -721,7 +704,6 @@
     }
   }
 
-  // Escape para fechar
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeNewProjectModal();

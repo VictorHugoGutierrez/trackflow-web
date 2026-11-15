@@ -88,7 +88,6 @@ export class ClientProjectController {
     });
   }
 
-  // --- Clientes ---
   static async createClient(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { name, contact } = req.body;
@@ -171,7 +170,6 @@ export class ClientProjectController {
     }
   }
 
-  // --- Projetos ---
   static async createProject(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { name, clientId, budgetReais, estimatedHours, status } = req.body;

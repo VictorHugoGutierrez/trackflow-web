@@ -73,7 +73,6 @@ export async function authMiddleware(
           payload.name = fetchedName.trim();
         }
       } catch {
-        // Fallback silencioso caso a API esteja indisponível
       }
     }
 

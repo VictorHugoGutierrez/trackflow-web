@@ -235,7 +235,6 @@
   </div>
 </div>
 
-<!-- Modal Novo Tenant & Owner -->
 <div id="modal-create-tenant" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 text-xs shadow-2xl">
     <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -705,7 +704,6 @@
     btn.disabled = true;
 
     try {
-      // 1. Criar Owner e Workspace na API
       const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -719,7 +717,6 @@
 
       const createdTenant = result.data?.tenant;
 
-      // 2. Se o plano for pro ou enterprise, atualiza o plano via API administrativa
       if (plan && plan !== "freemium" && createdTenant?.id) {
         const token = localStorage.getItem("trackflow_token");
         const headers = { "Content-Type": "application/json" };
