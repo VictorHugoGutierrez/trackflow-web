@@ -56,6 +56,16 @@ export class ClientProjectController {
         if (resProjects.status === "fulfilled" && resProjects.value.data?.success) {
           projects = resProjects.value.data.data || [];
         }
+
+        if (clients.length > 0 && projects.length > 0) {
+          const clientMap = new Map(clients.map((c) => [c.id, c]));
+          projects = projects.map((p) => {
+            if (!p.client && p.clientId && clientMap.has(p.clientId)) {
+              return { ...p, client: clientMap.get(p.clientId) || null };
+            }
+            return p;
+          });
+        }
       }
     } catch (err: any) {
       console.error("Erro ao carregar Clientes e Projetos:", err.message);
