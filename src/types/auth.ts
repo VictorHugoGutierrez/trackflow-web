@@ -6,6 +6,7 @@ export interface JWTPayload {
   role: UserRole;
   email: string;
   name?: string;
+  mustChangePassword?: boolean;
   iat?: number;
   exp?: number;
 }
