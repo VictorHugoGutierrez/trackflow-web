@@ -95,8 +95,18 @@
           <%= typeof user !== 'undefined' && user && user.tenantName ? user.tenantName : 'Workspace Ativo' %>
         </div>
         <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          <span><%= typeof user !== 'undefined' && user && user.tenantPlan ? user.tenantPlan.toUpperCase() : 'PRO' %></span>
+          <%
+            const displayPlan = (typeof tenant !== 'undefined' && tenant && tenant.plan) 
+              ? tenant.plan.toUpperCase() 
+              : ((typeof userMe !== 'undefined' && userMe && userMe.tenant && userMe.tenant.plan)
+                ? userMe.tenant.plan.toUpperCase()
+                : ((typeof user !== 'undefined' && user && user.tenantPlan)
+                  ? user.tenantPlan.toUpperCase()
+                  : 'FREEMIUM'));
+            const isPro = displayPlan === 'PRO' || displayPlan === 'ENTERPRISE';
+          %>
+          <span class="w-1.5 h-1.5 rounded-full <%= isPro ? 'bg-emerald-500' : 'bg-slate-400' %>"></span>
+          <span><%= displayPlan %></span>
         </div>
       </div>
       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
