@@ -217,8 +217,19 @@ export class DashboardController {
   static async updateTimeEntry(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { id } = req.params;
-    const { description, projectId, start, end, billable } = req.body;
+    let { description, projectId, start, end, billable } = req.body;
     const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    if (start && end) {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        if (endDate <= startDate) {
+          endDate.setTime(startDate.getTime() + 1000);
+          end = endDate.toISOString();
+        }
+      }
+    }
 
     try {
       const response = await axios.patch(

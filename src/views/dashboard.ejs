@@ -314,6 +314,7 @@
             type="datetime-local"
             name="start"
             id="manual-start"
+            step="1"
             required
             class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
@@ -324,6 +325,7 @@
             type="datetime-local"
             name="end"
             id="manual-end"
+            step="1"
             required
             class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
@@ -409,6 +411,7 @@
             type="datetime-local"
             name="start"
             id="edit-start"
+            step="1"
             class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
         </div>
@@ -418,6 +421,7 @@
             type="datetime-local"
             name="end"
             id="edit-end"
+            step="1"
             class="w-full px-3 py-2 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
           />
         </div>
@@ -449,6 +453,37 @@
   </div>
 </div>
 
+<!-- Modal 3: Deletar Apontamento Confirmação -->
+<div id="modal-delete" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 animate-scale-in text-center">
+    <div class="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 mx-auto flex items-center justify-center">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+    </div>
+    <div class="space-y-1">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white">Remover Apontamento?</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400">Esta ação não pode ser desfeita e o registro será excluído permanentemente.</p>
+    </div>
+    <div class="flex items-center justify-center gap-3 pt-2">
+      <button
+        type="button"
+        onclick="closeDeleteModal()"
+        class="w-full py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        onclick="executeDeleteEntry()"
+        class="w-full py-2.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm cursor-pointer"
+      >
+        Excluir
+      </button>
+    </div>
+  </div>
+</div>
+
 <form id="form-delete-entry" method="POST" class="hidden"></form>
 
 <script>
@@ -457,7 +492,7 @@
     const d = new Date(isoStr);
     if (isNaN(d.getTime())) return '';
     const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
 
   function openManualModal() {
@@ -491,10 +526,22 @@
     document.getElementById('modal-edit').classList.add('hidden');
   }
 
+  let entryIdToDelete = null;
+
   function confirmDeleteEntry(id) {
-    if (confirm('Tem certeza que deseja remover este apontamento de tempo? Esta ação não pode ser desfeita.')) {
+    entryIdToDelete = id;
+    document.getElementById('modal-delete').classList.remove('hidden');
+  }
+
+  function closeDeleteModal() {
+    entryIdToDelete = null;
+    document.getElementById('modal-delete').classList.add('hidden');
+  }
+
+  function executeDeleteEntry() {
+    if (entryIdToDelete) {
       const form = document.getElementById('form-delete-entry');
-      form.action = `/time-entries/${id}/delete`;
+      form.action = `/time-entries/${entryIdToDelete}/delete`;
       form.submit();
     }
   }
@@ -503,6 +550,7 @@
     if (e.key === 'Escape') {
       closeManualModal();
       closeEditModal();
+      closeDeleteModal();
     }
   });
 </script>
