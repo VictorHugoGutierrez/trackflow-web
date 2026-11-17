@@ -667,7 +667,7 @@
   }
 
   function confirmDeleteProject(id) {
-    openModal('Confirmar Exclusão', 'Atenção: Ao excluir o projeto, os apontamentos vinculados ficarão sem projeto. Confirmar exclusão?', () => {
+    openModal('Confirmar Exclusão', 'Caso este registro já possua horas apontadas ou faturas, ele será inativado para preservar o histórico financeiro.', () => {
       const form = document.getElementById('form-delete-project');
       form.action = `/projects/${id}/delete`;
       form.submit();
@@ -697,7 +697,7 @@
   }
 
   function confirmDeleteClient(id) {
-    openModal('Confirmar Exclusão', 'Atenção: A exclusão de um cliente pode afetar seus projetos e faturas associadas. Confirmar exclusão?', () => {
+    openModal('Confirmar Exclusão', 'Caso este registro já possua horas apontadas ou faturas, ele será inativado para preservar o histórico financeiro.', () => {
       const form = document.getElementById('form-delete-client');
       form.action = `/clients/${id}/delete`;
       form.submit();
