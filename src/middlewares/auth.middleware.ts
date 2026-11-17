@@ -86,6 +86,15 @@ export async function authMiddleware(
 
     const role = payload.role as UserRole;
 
+    // Role-based Access Control
+    if (role === "MEMBER" && pathname.startsWith("/team")) {
+      return res.redirect("/dashboard");
+    }
+
+    if (role === "MEMBER" && pathname.startsWith("/control-plane")) {
+      return res.redirect("/dashboard");
+    }
+
     if (
       role === "SUPER_ADMIN" &&
       !pathname.startsWith("/control-plane") &&
@@ -98,6 +107,7 @@ export async function authMiddleware(
     if (pathname.startsWith("/control-plane") && role !== "SUPER_ADMIN") {
       return res.redirect("/dashboard");
     }
+
 
     if (pathname === "/") {
       const dest = role === "SUPER_ADMIN" ? "/control-plane" : "/dashboard";
