@@ -118,6 +118,10 @@
   </div>
 </header>
 
+<%- include('modals') %>
+<%- include('toast') %>
+<%- include('chat-widget') %>
+
 <script>
   (function() {
     let timerInterval = null;
@@ -253,7 +257,7 @@
             renderRunningState(startTime, entry.description, entry.projectId, entry.id);
             window.dispatchEvent(new CustomEvent('trackflow:timer-started', { detail: entry }));
           } else {
-            alert(data.error?.message || 'Não foi possível iniciar o cronômetro.');
+            showToast(data.error?.message || 'Não foi possível iniciar o cronômetro.', 'error');
           }
         } else {
           const desc = descEl ? descEl.value.trim() : '';
@@ -273,12 +277,12 @@
               window.location.reload();
             }
           } else {
-            alert(data.error?.message || 'Não foi possível parar o cronômetro.');
+            showToast(data.error?.message || 'Não foi possível parar o cronômetro.', 'error');
           }
         }
       } catch (err) {
         console.error('Erro no cronômetro:', err);
-        alert('Falha na comunicação com o servidor.');
+        showToast('Falha na comunicação com o servidor.', 'error');
       } finally {
         btnEl.disabled = false;
       }

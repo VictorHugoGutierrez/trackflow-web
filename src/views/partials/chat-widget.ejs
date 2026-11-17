@@ -17,9 +17,28 @@
     const input = document.getElementById('chat-input');
     const msg = input.value;
     if (!msg) return;
-    const res = await fetch('/api/ai/chat', { method: 'POST', body: JSON.stringify({ message: msg }), headers: { 'Content-Type': 'application/json' } });
-    const data = await res.json();
-    document.getElementById('chat-messages').innerHTML += `<div class="mb-2 text-xs"><strong>Você:</strong> ${msg}</div><div class="mb-2 text-xs"><strong>IA:</strong> ${data.data}</div>`;
+
+    const messages = document.getElementById('chat-messages');
+    messages.innerHTML += `<div class="mb-2 text-xs"><strong>Você:</strong> ${msg}</div>`;
     input.value = '';
+    messages.innerHTML += `<div id="loading" class="mb-2 text-xs text-slate-400">IA está digitando...</div>`;
+
+    try {
+        const res = await fetch('/api/ai/chat', { 
+            method: 'POST', 
+            body: JSON.stringify({ message: msg }), 
+            headers: { 'Content-Type': 'application/json' } 
+        });
+        const data = await res.json();
+        document.getElementById('loading').remove();
+        if (data.success) {
+            messages.innerHTML += `<div class="mb-2 text-xs"><strong>IA:</strong> ${data.data}</div>`;
+        } else {
+            showToast(data.error?.message || 'Erro ao conversar com a IA', 'error');
+        }
+    } catch(e) {
+        document.getElementById('loading').remove();
+        showToast('Erro ao conectar ao servidor.', 'error');
+    }
   }
 </script>

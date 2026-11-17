@@ -667,11 +667,11 @@
   }
 
   function confirmDeleteProject(id) {
-    if (confirm('Atenção: Ao excluir o projeto, os apontamentos vinculados ficarão sem projeto. Confirmar exclusão?')) {
+    openModal('Confirmar Exclusão', 'Atenção: Ao excluir o projeto, os apontamentos vinculados ficarão sem projeto. Confirmar exclusão?', () => {
       const form = document.getElementById('form-delete-project');
       form.action = `/projects/${id}/delete`;
       form.submit();
-    }
+    });
   }
 
   function openNewClientModal() {
@@ -697,11 +697,11 @@
   }
 
   function confirmDeleteClient(id) {
-    if (confirm('Atenção: A exclusão de um cliente pode afetar seus projetos e faturas associadas. Confirmar exclusão?')) {
+    openModal('Confirmar Exclusão', 'Atenção: A exclusão de um cliente pode afetar seus projetos e faturas associadas. Confirmar exclusão?', () => {
       const form = document.getElementById('form-delete-client');
       form.action = `/clients/${id}/delete`;
       form.submit();
-    }
+    });
   }
 
   window.addEventListener('keydown', (e) => {

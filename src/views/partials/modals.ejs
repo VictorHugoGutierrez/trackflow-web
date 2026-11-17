@@ -1,0 +1,28 @@
+<div id="custom-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeModal()"></div>
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl z-10">
+    <h3 id="modal-title" class="text-lg font-bold text-slate-900 dark:text-white mb-2"></h3>
+    <p id="modal-description" class="text-sm text-slate-600 dark:text-slate-400 mb-6"></p>
+    <div class="flex gap-3">
+      <button onclick="closeModal()" class="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700">Cancelar</button>
+      <button id="modal-confirm-btn" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(title, description, onConfirm) {
+    const modal = document.getElementById('custom-modal');
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-description').textContent = description;
+    const confirmBtn = document.getElementById('modal-confirm-btn');
+    confirmBtn.onclick = () => {
+      onConfirm();
+      closeModal();
+    };
+    modal.classList.remove('hidden');
+  }
+  function closeModal() {
+    document.getElementById('custom-modal').classList.add('hidden');
+  }
+</script>
