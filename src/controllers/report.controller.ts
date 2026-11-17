@@ -681,4 +681,45 @@ export class ReportController {
       return res.redirect(`/reports?error=${encodeURIComponent(msg)}`);
     }
   }
+
+  static async streamInvoicePdf(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { id } = req.params;
+
+    if (!token) {
+      return res.redirect("/");
+    }
+
+    try {
+      const response = await axios.get(`${API_URL}/api/invoices/${id}/pdf`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Cookie: `trackflow_session=${token}`,
+        },
+        responseType: "arraybuffer",
+        timeout: 60000,
+      });
+
+      const contentType = (response.headers["content-type"] as string) || "application/pdf";
+
+      res.setHeader("Content-Type", contentType);
+      res.setHeader(
+        "Content-Disposition",
+        `inline; filename="fatura-${id}.pdf"`
+      );
+      return res.status(200).send(Buffer.from(response.data));
+    } catch (err: any) {
+      let msg = "Erro ao gerar PDF da fatura.";
+      if (err.response?.data) {
+        try {
+          const parsed = JSON.parse(
+            Buffer.from(err.response.data).toString("utf-8")
+          );
+          msg = parsed?.error?.message || msg;
+        } catch {
+        }
+      }
+      return res.redirect(`/reports?error=${encodeURIComponent(msg)}`);
+    }
+  }
 }
