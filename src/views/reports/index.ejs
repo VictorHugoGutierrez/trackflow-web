@@ -41,11 +41,8 @@
 
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-2.5">
-            <span>IA, Relatórios & Faturamento</span>
-            <span class="px-2.5 py-0.5 text-[10px] font-mono font-semibold uppercase rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-              Ollama Cloud • gpt-oss:120b
-            </span>
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            IA, Relatórios & Faturamento
           </h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Apuração consolidada por projeto, insights executivos com IA e faturamento automatizado via Resend
@@ -154,7 +151,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span id="ai-btn-text">✨ Gerar Insight com IA (gpt-oss:120b)</span>
+              <span id="ai-btn-text">✨ Gerar Insight com IA</span>
             </button>
 
             <button
@@ -193,7 +190,7 @@
           <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-purple-500/15">
             <div class="flex items-center gap-2">
               <span class="font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
-                🤖 Insight Executivo Gerado por IA (Ollama Cloud • gpt-oss:120b)
+                🤖 Insight Executivo Gerado por IA
               </span>
               <span id="ai-summary-meta" class="px-2 py-0.5 text-[10px] font-mono rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-300"></span>
             </div>
@@ -391,15 +388,15 @@
                     </td>
                     <td class="px-4 py-3.5">
                       <% if (inv.status === 'pago') { %>
-                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5 whitespace-nowrap">
                           ● Pago
                         </span>
                       <% } else if (inv.status === 'cancelado') { %>
-                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 inline-flex items-center gap-1.5 whitespace-nowrap">
                           ● Cancelado
                         </span>
                       <% } else { %>
-                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1.5 whitespace-nowrap">
                           ● Pendente
                         </span>
                       <% } %>
@@ -412,28 +409,29 @@
                     </td>
                     <td class="px-4 py-3.5 text-right">
                       <div class="flex flex-wrap items-center justify-end gap-1.5">
-                        <% if (inv.pdfUrl) { %>
-                          <button
-                            type="button"
-                            data-pdf="<%= inv.pdfUrl %>"
-                            data-client="<%= inv.client ? inv.client.name : 'Cliente' %>"
-                            data-month="<%= inv.monthRef %>"
-                            onclick="openPdfPreviewModal(this)"
-                            class="px-2.5 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
-                            title="Visualizar Documento da Fatura"
-                          >
-                            📄 Fatura
-                          </button>
-                        <% } else { %>
+                        <div class="flex items-center gap-1.5">
+                          <% if (inv.pdfUrl) { %>
+                            <button
+                              type="button"
+                              data-pdf="<%= inv.pdfUrl %>"
+                              data-client="<%= inv.client ? inv.client.name : 'Cliente' %>"
+                              data-month="<%= inv.monthRef %>"
+                              onclick="openPdfPreviewModal(this)"
+                              class="px-2.5 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+                              title="Visualizar Fatura"
+                            >
+                              📄 Fatura
+                            </button>
+                          <% } %>
                           <a
                             href="/api/invoices/<%= inv.id %>/pdf"
                             target="_blank"
                             class="px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-colors border border-emerald-500/20 cursor-pointer"
                             title="Baixar PDF"
                           >
-                            ⬇️ Baixar PDF
+                            ⬇️ PDF
                           </a>
-                        <% } %>
+                        </div>
 
                         <% if (inv.aiSummary) { %>
                           <button
@@ -579,7 +577,7 @@
       <button type="button" onclick="closeInvoiceModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
     </div>
 
-    <form action="/reports/invoices" method="POST" class="space-y-4">
+    <form action="/reports/invoices" method="POST" onsubmit="return validateInvoiceForm(event)" class="space-y-4">
       <input type="hidden" name="hourlyRate" id="invoice-hourly-rate" value="<%= hourlyRate %>" />
       <input type="hidden" name="durationSeconds" id="invoice-duration-seconds" value="<%= totalBillableSeconds %>" />
       <input type="hidden" name="totalHours" id="invoice-total-hours" value="<%= totalBillableHours %>" />
@@ -651,19 +649,19 @@
             onclick="generateAiInsideModal()"
             class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 cursor-pointer"
           >
-            <span>✨ Gerar com Ollama Cloud agora</span>
+            <span>✨ Gerar Insight com IA</span>
           </button>
         </div>
         <textarea
           name="aiSummary"
           id="invoice-ai-summary"
           rows="4"
-          placeholder="Clique em 'Gerar com Ollama Cloud agora' ou marque a opção abaixo para gerar automaticamente ao emitir..."
+          placeholder="Clique em 'Gerar Insight com IA' ou marque a opção abaixo para gerar automaticamente ao emitir..."
           class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 font-sans"
         ></textarea>
         <label class="flex items-center gap-2 mt-1.5 cursor-pointer select-none">
           <input type="checkbox" name="generateAi" value="true" checked class="w-3.5 h-3.5 rounded text-purple-600 focus:ring-purple-500" />
-          <span class="text-[11px] text-slate-500 dark:text-slate-400">Gerar resumo executivo automaticamente via Ollama (<code>gpt-oss:120b</code>) caso o campo esteja em branco</span>
+          <span class="text-[11px] text-slate-500 dark:text-slate-400">Gerar resumo executivo automaticamente via IA caso o campo esteja em branco</span>
         </label>
       </div>
 
@@ -761,7 +759,6 @@
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
       <div>
         <h3 id="view-pdf-title" class="text-sm font-bold text-slate-900 dark:text-white">Documento da Fatura</h3>
-        <p class="text-[11px] text-slate-500 dark:text-slate-400">Gerado em <code>POST /api/invoices/generate</code></p>
       </div>
       <div class="flex items-center gap-2">
         <button
@@ -798,8 +795,22 @@
     onInvoiceClientOrMonthChange();
   }
 
-  function closeInvoiceModal() {
-    document.getElementById('modal-invoice').classList.add('hidden');
+  function validateInvoiceForm(event) {
+    const clientId = document.getElementById('invoice-client-select').value;
+    const totalValue = document.getElementById('invoice-total-value').value;
+
+    if (!clientId) {
+      event.preventDefault();
+      showToast('Selecione um cliente para emitir a fatura.', 'error');
+      return false;
+    }
+    
+    if (Number(totalValue) <= 0) {
+        event.preventDefault();
+        showToast('O valor da fatura deve ser maior que R$ 0,00.', 'error');
+        return false;
+    }
+    return true;
   }
 
   function openSendInvoiceModal(btn) {
@@ -965,10 +976,10 @@
         const modalTextarea = document.getElementById('invoice-ai-summary');
         if (modalTextarea) modalTextarea.value = summary;
       } else {
-        alert(json.error?.message || 'Não foi possível gerar o insight com IA.');
+        showToast(json.error?.message || 'Não foi possível gerar o insight com IA.', 'error');
       }
     } catch (e) {
-      alert('Falha na comunicação com o serviço de IA (Ollama Cloud).');
+      showToast('Falha na comunicação com o serviço de IA.', 'error');
     } finally {
       btn.disabled = false;
       icon.classList.add('hidden');
@@ -1005,10 +1016,10 @@
       if (json.success && json.data) {
         textarea.value = json.data.summary || json.data.insight || '';
       } else {
-        alert(json.error?.message || 'Erro ao gerar resumo executivo com IA.');
+        showToast(json.error?.message || 'Erro ao gerar resumo executivo com IA.', 'error');
       }
     } catch (err) {
-      alert('Erro ao conectar ao Ollama Cloud.');
+      showToast('Erro ao conectar ao Ollama Cloud.', 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = originalText;
@@ -1030,7 +1041,7 @@
         window.location.href = '/reports?success=Status+da+fatura+atualizado+para+' + encodeURIComponent(newStatus);
         return;
       }
-      alert(json.error?.message || 'Erro ao atualizar status da fatura.');
+      showToast(json.error?.message || 'Erro ao atualizar status da fatura.', 'error');
     } catch (err) {
       const form = document.getElementById('form-status-update');
       document.getElementById('form-status-input').value = newStatus;
