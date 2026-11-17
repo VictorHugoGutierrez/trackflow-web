@@ -389,15 +389,15 @@
                     </td>
                     <td class="px-4 py-3.5">
                       <% if (inv.status === 'pago') { %>
-                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5 whitespace-nowrap min-w-max">
                           ● Pago
                         </span>
                       <% } else if (inv.status === 'cancelado') { %>
-                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 inline-flex items-center gap-1.5 whitespace-nowrap min-w-max">
                           ● Cancelado
                         </span>
                       <% } else { %>
-                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1.5 whitespace-nowrap min-w-max">
                           ● Pendente
                         </span>
                       <% } %>
@@ -864,9 +864,8 @@
 
   function printInvoiceIframe() {
     const iframe = document.getElementById('invoice-pdf-iframe');
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
+    if (iframe && iframe.src) {
+      window.open(iframe.src, '_blank');
     }
   }
 
