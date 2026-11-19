@@ -86,6 +86,8 @@ export async function authMiddleware(
       pathname === '/logout' || 
       pathname === '/login';
 
+    console.log("[authMiddleware] DEBUG:", { pathname, mustChangePassword: payload.mustChangePassword, isExemptRoute });
+
     if (payload.mustChangePassword === true && !isExemptRoute) {
       return res.redirect("/first-access");
     }
