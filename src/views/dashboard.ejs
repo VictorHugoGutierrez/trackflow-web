@@ -202,7 +202,7 @@
                     </td>
                     <td class="px-4 py-3.5">
                       <% if (entry.project) { %>
-                        <span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <span class="inline-flex items-center whitespace-nowrap px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                           <%= entry.project.name %>
                         </span>
                       <% } else { %>
@@ -233,7 +233,7 @@
                     <td class="px-4 py-3.5 text-right space-x-1" onclick="event.stopPropagation()">
                       <button
                         type="button"
-                        onclick="startTimerFromEntry('<%= esc(entry.description || '') %>', '<%= entry.projectId || '' %>')"
+                        onclick="startTimerFromEntry('<%= esc(entry.description || '') %>', '<%= entry.projectId || (entry.project ? entry.project.id : '') %>', '<%= esc(entry.project ? entry.project.name : '') %>')"
                         class="p-1.5 text-emerald-500 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
                         title="Retomar apontamento"
                       >
@@ -556,12 +556,12 @@
     }
   }
 
-  async function startTimerFromEntry(description, projectId) {
+  async function startTimerFromEntry(description, projectId, projectName) {
     if (typeof window.startGlobalTimerWith === 'function') {
       if (typeof showToast === 'function') {
         showToast('Retomando apontamento no cronômetro...', 'success');
       }
-      await window.startGlobalTimerWith(description, projectId);
+      await window.startGlobalTimerWith(description, projectId, projectName);
     }
   }
 
