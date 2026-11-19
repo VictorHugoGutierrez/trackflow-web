@@ -1,7 +1,7 @@
 <header class="w-full border-b border-slate-200 dark:border-slate-800 bg-card/90 backdrop-blur sticky top-0 z-20 overflow-x-clip">
-  <div class="px-3 lg:px-6 h-16 flex items-center justify-between gap-2 lg:gap-3 min-w-0">
+  <div class="px-2.5 lg:px-6 h-16 flex items-center justify-between gap-1.5 lg:gap-3 min-w-0">
     
-    <div class="flex items-center gap-2 lg:gap-3 shrink-0 min-w-0">
+    <div class="flex md:hidden xl:flex items-center gap-2 lg:gap-3 shrink-0 min-w-0">
       <button
         type="button"
         onclick="toggleMobileSidebar()"
@@ -22,20 +22,20 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-1.5 lg:gap-2 flex-1 min-w-0 max-w-2xl mx-auto justify-center">
-      <div class="relative flex-1 min-w-0 max-w-xs hidden md:block">
+    <div class="flex items-center gap-1 lg:gap-2 flex-1 min-w-0 max-w-2xl mx-auto justify-center">
+      <div class="relative flex-1 min-w-[60px] max-w-xs hidden md:block">
         <input
           type="text"
           id="global-timer-desc"
           placeholder="No que você está trabalhando?"
-          class="w-full min-w-0 truncate px-2.5 lg:px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-normal"
+          class="w-full min-w-0 truncate px-2 lg:px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-normal"
         />
       </div>
 
-      <div class="hidden lg:block shrink-0 min-w-0">
+      <div class="hidden md:block shrink-0 min-w-0">
         <select
           id="global-timer-project"
-          class="px-2.5 py-1.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 max-w-[130px] xl:max-w-[150px] truncate"
+          class="px-1.5 lg:px-2.5 py-1.5 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-[96px] lg:w-auto lg:max-w-[135px] xl:max-w-[155px] truncate"
         >
           <option value="">Sem projeto</option>
           <% if (typeof projects !== 'undefined' && projects && projects.length > 0) { %>
@@ -52,15 +52,15 @@
         type="button"
         id="global-pomodoro-toggle"
         onclick="togglePomodoroMode()"
-        class="hidden sm:inline-flex items-center gap-1.5 px-2 lg:px-2.5 py-1.5 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 bg-slate-50 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300 transition-colors shrink-0"
+        class="hidden sm:inline-flex items-center gap-1.5 px-1.5 lg:px-2.5 py-1.5 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 bg-slate-50 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300 transition-colors shrink-0"
         title="Alternar Modo Pomodoro (25m foco / 5m intervalo)"
       >
         <span id="pomodoro-icon" class="text-sm">⏱️</span>
         <span id="pomodoro-label" class="hidden xl:inline">Normal</span>
       </button>
 
-      <div class="px-2 lg:px-3 py-1 bg-slate-100 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center min-w-[78px] lg:min-w-[90px] shadow-inner shrink-0">
-        <span id="global-timer-clock" class="text-xs sm:text-sm md:text-sm lg:text-base font-bold font-mono tabular-nums text-slate-900 dark:text-white tracking-wider lg:tracking-widest">
+      <div class="px-1.5 lg:px-3 py-1 bg-slate-100 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center min-w-[68px] lg:min-w-[90px] shadow-inner shrink-0">
+        <span id="global-timer-clock" class="text-xs sm:text-sm md:text-xs lg:text-base font-bold font-mono tabular-nums text-slate-900 dark:text-white tracking-wide lg:tracking-widest">
           00:00:00
         </span>
       </div>
@@ -69,7 +69,7 @@
         type="button"
         id="global-timer-btn"
         onclick="toggleGlobalTimer()"
-        class="h-9 px-2.5 lg:px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-play hover:bg-play/90 text-white shadow-play/20 active:scale-95 shrink-0 whitespace-nowrap"
+        class="h-9 px-2 lg:px-3.5 rounded-lg font-bold text-xs flex items-center gap-1 lg:gap-1.5 transition-all shadow-sm cursor-pointer bg-play hover:bg-play/90 text-white shadow-play/20 active:scale-95 shrink-0 whitespace-nowrap"
       >
         <svg id="global-timer-play-icon" class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z" />
@@ -81,13 +81,13 @@
       </button>
     </div>
 
-    <div class="flex items-center gap-1.5 sm:gap-2 lg:gap-3 shrink-0">
+    <div class="flex items-center gap-1 lg:gap-3 shrink-0">
       <button
         type="button"
         id="theme-toggle-btn"
         onclick="toggleTheme()"
         aria-label="Alternar tema"
-        class="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+        class="p-1.5 lg:p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
         title="Alternar tema"
       >
         <svg id="theme-moon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
