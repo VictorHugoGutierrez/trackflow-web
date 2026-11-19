@@ -86,7 +86,8 @@ export async function authMiddleware(
       pathname === '/logout' || 
       pathname === '/login';
 
-    if (payload.mustChangePassword === true && !isExemptRoute) {
+    // Only redirect if it's an HTML page request and not an exempt route
+    if (payload.mustChangePassword === true && !isExemptRoute && req.accepts('html')) {
       return res.redirect("/first-access");
     }
 
