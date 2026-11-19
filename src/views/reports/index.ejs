@@ -954,7 +954,7 @@
 
     btn.disabled = true;
     icon.classList.remove('hidden');
-    btnText.textContent = 'Consultando Ollama Cloud (gpt-oss:120b)...';
+    btnText.textContent = 'Consultando IA...';
 
     try {
       const res = await fetch('/api/reports/ai-insight', {
@@ -995,7 +995,7 @@
     } finally {
       btn.disabled = false;
       icon.classList.add('hidden');
-      btnText.textContent = '✨ Gerar Insight com IA (gpt-oss:120b)';
+      btnText.textContent = '✨ Gerar Insight com IA';
     }
   }
 
@@ -1010,7 +1010,7 @@
 
     btn.disabled = true;
     const originalText = btn.innerHTML;
-    btn.textContent = '⏳ Gerando com Ollama Cloud...';
+    btn.textContent = '⏳ Gerando com IA...';
 
     try {
       const res = await fetch('/api/reports/ai-insight', {
@@ -1031,7 +1031,7 @@
         showToast(json.error?.message || 'Erro ao gerar resumo executivo com IA.', 'error');
       }
     } catch (err) {
-      showToast('Erro ao conectar ao Ollama Cloud.', 'error');
+      showToast('Erro ao conectar ao serviço de IA.', 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = originalText;
