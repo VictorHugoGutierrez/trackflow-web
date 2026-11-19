@@ -115,8 +115,14 @@ export async function authMiddleware(
     }
 
     return next();
-  } catch (error) {
-    res.clearCookie("trackflow_session", { path: "/" });
+  } catch (error: any) {
+    console.warn("[authMiddleware] Erro de validação de token:", error.message);
+    
+    // Clear only if token is explicitly invalid or expired
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      res.clearCookie("trackflow_session", { path: "/" });
+    }
+
     if (isProtectedRoute) {
       if (isApiRoute) {
         return res.status(401).json({

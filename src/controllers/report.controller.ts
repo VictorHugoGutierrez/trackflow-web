@@ -368,6 +368,34 @@ export class ReportController {
     });
   }
 
+  static async exportCsv(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { month, clientId, projectId } = req.query;
+
+    const params = new URLSearchParams();
+    if (typeof month === "string") params.set("month", month);
+    if (typeof clientId === "string") params.set("clientId", clientId);
+    if (typeof projectId === "string") params.set("projectId", projectId);
+
+    try {
+      const response = await axios.get(`${API_URL}/api/reports/export/csv?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Cookie: `trackflow_session=${token}`,
+        },
+        responseType: "arraybuffer",
+        timeout: 10000,
+      });
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", "attachment; filename=relatorio.csv");
+      return res.send(Buffer.from(response.data));
+    } catch (err: any) {
+      console.error("Erro ao exportar CSV:", err.message);
+      return res.status(err.response?.status || 500).send("Erro ao exportar CSV.");
+    }
+  }
+
   static async getSummary(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
     const { clientId, projectId, startDate, endDate, hourlyRate, month } = req.query;

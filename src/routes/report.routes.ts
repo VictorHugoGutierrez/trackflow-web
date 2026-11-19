@@ -7,6 +7,7 @@ reportRoutes.get("/reports", ReportController.render);
 
 reportRoutes.get("/reports/summary", ReportController.getSummary);
 reportRoutes.get("/api/reports/summary", ReportController.getSummary);
+reportRoutes.get("/api/reports/export/csv", ReportController.exportCsv);
 
 reportRoutes.get("/api/invoices/:id/pdf", ReportController.streamInvoicePdf);
 reportRoutes.get("/reports/invoices/:id/pdf", ReportController.streamInvoicePdf);
