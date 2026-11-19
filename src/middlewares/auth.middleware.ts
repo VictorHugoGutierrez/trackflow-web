@@ -81,12 +81,10 @@ export async function authMiddleware(
 
     // Check for mandatory password change
     const isExemptRoute = 
-      pathname === '/first-access' || 
-      pathname === '/api/auth/change-password' || 
+      pathname.startsWith('/first-access') || 
+      pathname.startsWith('/api/auth/change-password') || 
       pathname === '/logout' || 
       pathname === '/login';
-
-    console.log("[authMiddleware] DEBUG:", { pathname, mustChangePassword: payload.mustChangePassword, isExemptRoute });
 
     if (payload.mustChangePassword === true && !isExemptRoute) {
       return res.redirect("/first-access");
