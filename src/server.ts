@@ -6,6 +6,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  formatDuration,
+  formatDurationShort,
+  formatCurrencyCents,
+  centsToReaisInput,
+  secondsToHoursInput,
+} from "./utils/formatters.js";
 import { authMiddleware } from "./middlewares/auth.middleware.js";
 import { authRoutes } from "./routes/auth.routes.js";
 import { dashboardRoutes } from "./routes/dashboard.routes.js";
@@ -43,6 +50,13 @@ const viewsDir = path.join(process.cwd(), "src", "views");
 console.log("Views directory set to:", viewsDir);
 app.set("view engine", "ejs");
 app.set("views", viewsDir);
+
+// Helpers de formatação disponíveis em todas as views EJS.
+app.locals.formatDuration = formatDuration;
+app.locals.formatDurationShort = formatDurationShort;
+app.locals.formatCurrencyCents = formatCurrencyCents;
+app.locals.centsToReaisInput = centsToReaisInput;
+app.locals.secondsToHoursInput = secondsToHoursInput;
 
 app.use(cookieParser());
 app.use(express.json());
