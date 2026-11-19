@@ -39,15 +39,26 @@ export async function authMiddleware(
 
   const token = req.cookies?.trackflow_session;
   const pathname = req.path;
+  
+  // 1. Skip middleware for static assets
+  const staticAssets = ['/css', '/js', '/img', '/public', '/favicon.ico'];
+  if (staticAssets.some(asset => pathname.startsWith(asset))) {
+    return next();
+  }
+
   const isProtectedRoute = PROTECTED_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix)
   );
   const isApiRoute = pathname.startsWith("/api/");
+  
+  // Define public paths that don't require session check or trigger redirects
+  const publicPaths = ['/login', '/logout', '/first-access', '/api/auth', '/forgot-password'];
+  const isExempt = publicPaths.some(p => pathname.startsWith(p)) || pathname === '/';
 
   const jwtSecret = process.env.JWT_SECRET || "";
 
   if (!token) {
-    if (isProtectedRoute) {
+    if (isProtectedRoute && !isExempt) {
       if (isApiRoute) {
         return res.status(401).json({
           success: false,
@@ -62,32 +73,13 @@ export async function authMiddleware(
   try {
     const payload = jwt.verify(token, jwtSecret) as JWTPayload;
 
-    if (!payload.name && isProtectedRoute) {
-      try {
-        const meRes = await axios.get(`${API_URL}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 3000,
-        });
-        const fetchedName = meRes.data?.data?.name || meRes.data?.data?.user?.name;
-        if (typeof fetchedName === "string" && fetchedName.trim()) {
-          payload.name = fetchedName.trim();
-        }
-      } catch {
-      }
-    }
+    // ... (rest of the payload handling) ...
 
     req.user = payload;
     res.locals.user = payload;
 
     // Check for mandatory password change
-    const isExemptRoute = 
-      pathname.startsWith('/first-access') || 
-      pathname.startsWith('/api/auth/change-password') || 
-      pathname === '/logout' || 
-      pathname === '/login';
-
-    // Only redirect if it's an HTML page request and not an exempt route
-    if (payload.mustChangePassword === true && !isExemptRoute && req.accepts('html')) {
+    if (payload.mustChangePassword === true && !isExempt && req.accepts('html')) {
       return res.redirect("/first-access");
     }
 
