@@ -80,7 +80,10 @@ export async function authMiddleware(
     res.locals.user = payload;
 
     // Check for mandatory password change
-    if (payload.mustChangePassword === true && pathname !== "/first-access") {
+    if (payload.mustChangePassword === true && 
+        pathname !== "/first-access" && 
+        pathname !== "/logout" && 
+        pathname !== "/api/auth/change-password") {
       return res.redirect("/first-access");
     }
 
