@@ -9,7 +9,6 @@ import { fileURLToPath } from "node:url";
 import { authMiddleware } from "./middlewares/auth.middleware.js";
 import { authRoutes } from "./routes/auth.routes.js";
 import { dashboardRoutes } from "./routes/dashboard.routes.js";
-import { controlPlaneRoutes } from "./routes/control-plane.routes.js";
 import { teamRoutes } from "./routes/team.routes.js";
 import { clientProjectRoutes } from "./routes/client-project.routes.js";
 import { reportRoutes } from "./routes/report.routes.js";
@@ -40,8 +39,8 @@ function getViewsDir(): string {
   return path.join(process.cwd(), "src", "views");
 }
 
-const viewsDir = getViewsDir();
-
+const viewsDir = path.join(process.cwd(), "src", "views");
+console.log("Views directory set to:", viewsDir);
 app.set("view engine", "ejs");
 app.set("views", viewsDir);
 
@@ -62,7 +61,6 @@ app.use(teamRoutes);
 app.use(clientProjectRoutes);
 app.use(reportRoutes);
 app.use(settingsRoutes);
-app.use(controlPlaneRoutes);
 
 app.use((_req, res) => {
   return res.status(404).render("login", {

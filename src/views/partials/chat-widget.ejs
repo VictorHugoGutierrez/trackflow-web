@@ -1,10 +1,23 @@
 <div id="ai-chat-widget" class="fixed bottom-6 right-6 z-50">
-  <button onclick="toggleChat()" class="p-3 bg-purple-600 text-white rounded-full shadow-lg">✨</button>
-  <div id="chat-box" class="hidden w-80 h-96 bg-card border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl flex flex-col p-4 mb-4">
-    <div class="flex-1 overflow-y-auto mb-3" id="chat-messages"></div>
-    <div class="flex gap-2">
-      <input type="text" id="chat-input" class="flex-1 px-2 py-1 border rounded-lg text-xs" placeholder="Pergunte à IA...">
-      <button onclick="sendChatMessage()" class="px-2 py-1 bg-purple-600 text-white rounded-lg text-xs">Enviar</button>
+  <button onclick="toggleChat()" class="p-3 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors">✨</button>
+  
+  <div id="chat-box" class="hidden w-80 h-96 bg-card border border-border rounded-2xl shadow-xl flex flex-col p-4 mb-4">
+    <div class="flex items-center justify-between mb-3 border-b border-border pb-2">
+      <div>
+        <h3 class="text-sm font-semibold text-foreground">Assistente IA</h3>
+        <p class="text-[10px] text-muted-foreground">Como posso ajudar?</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="clearChat()" class="text-xs text-muted-foreground hover:text-foreground">Limpar</button>
+        <button onclick="toggleChat()" class="text-sm font-bold text-muted-foreground hover:text-foreground">✕</button>
+      </div>
+    </div>
+    
+    <div class="flex-1 overflow-y-auto mb-3 text-foreground" id="chat-messages"></div>
+    
+    <div class="flex gap-2 shrink-0">
+      <input type="text" id="chat-input" class="flex-1 px-3 py-2 bg-card text-foreground border border-border rounded-lg text-xs focus:ring-1 focus:ring-purple-500 outline-none" placeholder="Pergunte à IA...">
+      <button onclick="sendChatMessage()" class="px-3 py-2 bg-purple-600 text-white rounded-lg text-xs hover:bg-purple-700 transition-colors">Enviar</button>
     </div>
   </div>
 </div>
@@ -13,6 +26,11 @@
   function toggleChat() {
     document.getElementById('chat-box').classList.toggle('hidden');
   }
+
+  function clearChat() {
+    document.getElementById('chat-messages').innerHTML = '';
+  }
+
   async function sendChatMessage() {
     const input = document.getElementById('chat-input');
     const msg = input.value;
@@ -30,14 +48,18 @@
             headers: { 'Content-Type': 'application/json' } 
         });
         const data = await res.json();
-        document.getElementById('loading').remove();
+        
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.remove();
+        
         if (data.success) {
             messages.innerHTML += `<div class="mb-2 text-xs"><strong>IA:</strong> ${data.data}</div>`;
         } else {
             showToast(data.error?.message || 'Erro ao conversar com a IA', 'error');
         }
     } catch(e) {
-        document.getElementById('loading').remove();
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.remove();
         showToast('Erro ao conectar ao servidor.', 'error');
     }
   }
