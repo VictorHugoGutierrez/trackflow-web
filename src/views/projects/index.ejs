@@ -128,18 +128,30 @@
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Acompanhe consumo de tempo, custo acumulado da equipe e status financeiro</p>
             </div>
             
-            <div class="relative w-full sm:w-64">
-              <input
-                type="text"
-                id="search-projects"
-                onkeyup="filterTable('search-projects', 'projects-tbody')"
-                placeholder="Filtrar projetos..."
-                class="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-              <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"/>
-              </svg>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              <div class="relative w-full sm:w-64">
+                <input
+                  type="text"
+                  id="search-projects"
+                  oninput="filterProjectsTable()"
+                  placeholder="Filtrar projetos..."
+                  class="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"/>
+                </svg>
+              </div>
+              <select
+                id="filter-project-status"
+                onchange="filterProjectsTable()"
+                class="px-3 py-1.5 text-xs bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+              >
+                <option value="">Todos os Status</option>
+                <option value="ACTIVE">Ativo</option>
+                <option value="OVER_BUDGET">Estourado</option>
+                <option value="COMPLETED">Concluído</option>
+              </select>
             </div>
           </div>
 
@@ -173,7 +185,7 @@
                       const costFormatted = formatCurrencyCents(p.accumulatedCostCents || 0);
                       const budgetFormatted = p.budgetCents ? formatCurrencyCents(p.budgetCents) : 'Sem orçamento';
                     %>
-                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                    <tr data-status="<%= p.status || 'ACTIVE' %>" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                       <td class="px-4 py-3.5 font-medium text-slate-900 dark:text-white">
                         <div class="flex items-center gap-2">
                           <span class="w-2 h-2 rounded-full shrink-0 <%= dotColor %>"></span>
@@ -633,6 +645,19 @@
 <form id="form-delete-client" method="POST" class="hidden"></form>
 
 <script>
+  function filterProjectsTable() {
+    const query = (document.getElementById('search-projects')?.value || '').toLowerCase();
+    const status = (document.getElementById('filter-project-status')?.value || '').toUpperCase();
+    const rows = document.getElementById('projects-tbody')?.getElementsByTagName('tr') || [];
+    for (let r of rows) {
+      const text = r.innerText.toLowerCase();
+      const rowStatus = (r.getAttribute('data-status') || '').toUpperCase();
+      const matchQuery = text.includes(query);
+      const matchStatus = !status || rowStatus === status;
+      r.style.display = (matchQuery && matchStatus) ? '' : 'none';
+    }
+  }
+
   function filterTable(inputId, tbodyId) {
     const query = document.getElementById(inputId).value.toLowerCase();
     const rows = document.getElementById(tbodyId).getElementsByTagName('tr');

@@ -102,6 +102,32 @@
   </div>
 
   <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+    <div class="p-4 border-b border-slate-100 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="relative w-full sm:w-72">
+        <input
+          type="text"
+          id="search-team"
+          oninput="filterTeamTable()"
+          placeholder="Buscar membro por nome ou e-mail..."
+          class="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+        />
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" stroke-width="2"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"/>
+        </svg>
+      </div>
+      <select
+        id="filter-team-role"
+        onchange="filterTeamTable()"
+        class="px-3 py-1.5 text-xs bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+      >
+        <option value="">Todos os Papéis</option>
+        <option value="OWNER">Proprietário</option>
+        <option value="MANAGER">Gestor</option>
+        <option value="MEMBER">Colaborador</option>
+      </select>
+    </div>
+
     <div class="overflow-x-auto">
       <table class="w-full text-left text-xs">
         <thead class="bg-slate-50 dark:bg-background border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
@@ -114,7 +140,7 @@
             <th class="px-6 py-3.5 text-right">Ações</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+        <tbody id="team-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80">
           <% if (!members || members.length === 0) { %>
             <tr>
               <td colspan="6" class="px-6 py-8 text-center text-slate-400">
@@ -123,7 +149,7 @@
             </tr>
           <% } else { %>
             <% members.forEach(function(member) { %>
-              <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+              <tr data-role="<%= member.role %>" class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-xs uppercase">
@@ -673,6 +699,19 @@
     const btn = document.getElementById("btn-delete-submit");
     btn.textContent = "Removendo...";
     btn.disabled = true;
+  }
+
+  function filterTeamTable() {
+    const query = (document.getElementById('search-team')?.value || '').toLowerCase();
+    const role = (document.getElementById('filter-team-role')?.value || '').toUpperCase();
+    const rows = document.getElementById('team-tbody')?.getElementsByTagName('tr') || [];
+    for (let r of rows) {
+      const text = r.innerText.toLowerCase();
+      const rowRole = (r.getAttribute('data-role') || '').toUpperCase();
+      const matchQuery = text.includes(query);
+      const matchRole = !role || rowRole === role;
+      r.style.display = (matchQuery && matchRole) ? '' : 'none';
+    }
   }
 
   function escapeHtml(str) {

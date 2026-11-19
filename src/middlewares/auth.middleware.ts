@@ -36,7 +36,14 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     }
 
     if (pathname === '/login' && req.accepts('html')) {
-      return res.redirect('/dashboard');
+      return res.redirect(decoded.role === 'SUPER_ADMIN' ? '/control-plane' : '/dashboard');
+    }
+
+    if (pathname.startsWith('/control-plane') && decoded.role !== 'SUPER_ADMIN') {
+      if (req.accepts('html')) {
+        return res.redirect('/dashboard');
+      }
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     return next();

@@ -13,7 +13,6 @@
     <%- include('partials/tenant-header') %>
 
     <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
-      <%- include('partials/chat-widget') %>
       <% if (typeof success !== 'undefined' && success) { %>
         <div class="p-4 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
           <div class="flex items-center gap-2">
@@ -557,13 +556,13 @@
     }
   }
 
-  function startTimerFromEntry(description, projectId) {
-    const manualModal = document.getElementById('modal-manual');
-    manualModal.classList.remove('hidden');
-    const form = manualModal.querySelector('form');
-    form.querySelector('[name="description"]').value = description;
-    form.querySelector('[name="projectId"]').value = projectId;
-    showToast('Iniciando retomada de cronômetro...', 'success');
+  async function startTimerFromEntry(description, projectId) {
+    if (typeof window.startGlobalTimerWith === 'function') {
+      if (typeof showToast === 'function') {
+        showToast('Retomando apontamento no cronômetro...', 'success');
+      }
+      await window.startGlobalTimerWith(description, projectId);
+    }
   }
 
   window.addEventListener('keydown', (e) => {

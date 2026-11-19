@@ -329,20 +329,45 @@
       </div>
 
       <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Histórico de Faturas Emitidas</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Gerencie o status de pagamento (<code>pendente</code>, <code>pago</code>, <code>cancelado</code>), visualize o documento da fatura e envie por e-mail via Resend
             </p>
           </div>
-          <button
-            type="button"
-            onclick="openInvoiceModal()"
-            class="px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            + Nova Fatura
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative w-full sm:w-52">
+              <input
+                type="text"
+                id="search-invoices"
+                oninput="filterInvoicesTable()"
+                placeholder="Buscar fatura ou cliente..."
+                class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+              <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"/>
+              </svg>
+            </div>
+            <select
+              id="filter-invoice-status"
+              onchange="filterInvoicesTable()"
+              class="px-3 py-1.5 text-xs bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+            >
+              <option value="">Todos os Status</option>
+              <option value="pendente">Pendente</option>
+              <option value="pago">Pago</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+            <button
+              type="button"
+              onclick="openInvoiceModal()"
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors cursor-pointer"
+            >
+              + Nova Fatura
+            </button>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -358,7 +383,7 @@
                 <th class="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+            <tbody id="invoices-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80">
               <% if (!invoices || invoices.length === 0) { %>
                 <tr>
                   <td colspan="7" class="px-4 py-10 text-center text-slate-400">
@@ -375,7 +400,7 @@
                       ? Number(inv.amountCents)
                       : Math.round((Number(inv.totalValue) || 0) * 100);
                   %>
-                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                  <tr data-status="<%= (inv.status || 'pendente').toLowerCase() %>" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                     <td class="px-4 py-3.5">
                       <div class="font-bold text-slate-900 dark:text-white">
                         <%= inv.client ? inv.client.name : 'Cliente' %>
@@ -1058,6 +1083,19 @@
       document.getElementById('form-status-input').value = newStatus;
       form.action = `/reports/invoices/${id}/status`;
       form.submit();
+    }
+  }
+
+  function filterInvoicesTable() {
+    const query = (document.getElementById('search-invoices')?.value || '').toLowerCase();
+    const status = (document.getElementById('filter-invoice-status')?.value || '').toLowerCase();
+    const rows = document.getElementById('invoices-tbody')?.getElementsByTagName('tr') || [];
+    for (let r of rows) {
+      const text = r.innerText.toLowerCase();
+      const rowStatus = (r.getAttribute('data-status') || '').toLowerCase();
+      const matchQuery = text.includes(query);
+      const matchStatus = !status || rowStatus === status;
+      r.style.display = (matchQuery && matchStatus) ? '' : 'none';
     }
   }
 
