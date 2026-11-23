@@ -1,66 +1,93 @@
-<div id="ai-chat-widget" class="fixed bottom-6 right-6 z-50">
-  <button onclick="toggleChat()" class="p-3 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors">✨</button>
-  
-  <div id="chat-box" class="hidden w-80 h-96 bg-card border border-border rounded-2xl shadow-xl flex flex-col p-4 mb-4">
-    <div class="flex items-center justify-between mb-3 border-b border-border pb-2">
+<div id="ai-chat-widget" class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
+  <div id="chat-box" class="hidden w-80 sm:w-96 h-96 bg-card border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex-col p-4 mb-3">
+    <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-slate-800 pb-2.5 shrink-0">
       <div>
-        <h3 class="text-sm font-semibold text-foreground">Assistente IA</h3>
-        <p class="text-[10px] text-muted-foreground">Como posso ajudar?</p>
+        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Assistente IA</h3>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400">Como posso ajudar hoje?</p>
       </div>
-      <div class="flex gap-2">
-        <button onclick="clearChat()" class="text-xs text-muted-foreground hover:text-foreground">Limpar</button>
-        <button onclick="toggleChat()" class="text-sm font-bold text-muted-foreground hover:text-foreground">✕</button>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="clearChat()" class="text-[11px] text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">Limpar</button>
+        <button type="button" onclick="toggleChat()" aria-label="Fechar chat" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer font-bold">✕</button>
       </div>
     </div>
-    
-    <div class="flex-1 overflow-y-auto mb-3 text-foreground" id="chat-messages"></div>
-    
-    <div class="flex gap-2 shrink-0">
-      <input type="text" id="chat-input" class="flex-1 px-3 py-2 bg-card text-foreground border border-border rounded-lg text-xs focus:ring-1 focus:ring-purple-500 outline-none" placeholder="Pergunte à IA...">
-      <button onclick="sendChatMessage()" class="px-3 py-2 bg-purple-600 text-white rounded-lg text-xs hover:bg-purple-700 transition-colors">Enviar</button>
+
+    <div class="flex-1 overflow-y-auto mb-3 space-y-2 text-slate-800 dark:text-slate-200 pr-1" id="chat-messages"></div>
+
+    <div class="flex items-center gap-2 shrink-0 pt-2 border-t border-slate-200 dark:border-slate-800">
+      <input type="text" id="chat-input" onkeydown="if (event.key === 'Enter') sendChatMessage()" class="flex-1 min-w-0 px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-1 focus:ring-purple-500 outline-none" placeholder="Pergunte à IA...">
+      <button type="button" onclick="sendChatMessage()" class="shrink-0 px-3.5 py-2 bg-purple-600 text-white rounded-xl text-xs font-semibold hover:bg-purple-700 transition-colors cursor-pointer">Enviar</button>
     </div>
   </div>
+
+  <button type="button" id="ai-chat-fab" onclick="toggleChat()" aria-label="Abrir Assistente IA" title="Assistente IA" class="w-12 h-12 flex items-center justify-center bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-all hover:scale-105 cursor-pointer">✨</button>
 </div>
 
 <script>
   function toggleChat() {
-    document.getElementById('chat-box').classList.toggle('hidden');
+    const box = document.getElementById('chat-box');
+    if (!box) return;
+    if (box.classList.contains('hidden')) {
+      box.classList.remove('hidden');
+      box.classList.add('flex');
+      const input = document.getElementById('chat-input');
+      if (input) setTimeout(() => input.focus(), 50);
+    } else {
+      box.classList.add('hidden');
+      box.classList.remove('flex');
+    }
   }
 
   function clearChat() {
-    document.getElementById('chat-messages').innerHTML = '';
+    const messages = document.getElementById('chat-messages');
+    if (messages) messages.innerHTML = '';
   }
 
   async function sendChatMessage() {
     const input = document.getElementById('chat-input');
-    const msg = input.value;
+    const msg = input ? input.value.trim() : '';
     if (!msg) return;
 
     const messages = document.getElementById('chat-messages');
-    messages.innerHTML += `<div class="mb-2 text-xs"><strong>Você:</strong> ${msg}</div>`;
+    const userDiv = document.createElement('div');
+    userDiv.className = 'mb-2 text-xs p-2 rounded-xl bg-purple-500/10 text-slate-900 dark:text-slate-100';
+    userDiv.innerHTML = `<strong>Você:</strong> `;
+    userDiv.appendChild(document.createTextNode(msg));
+    messages.appendChild(userDiv);
     input.value = '';
-    messages.innerHTML += `<div id="loading" class="mb-2 text-xs text-slate-400">IA está digitando...</div>`;
+
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loading';
+    loadingDiv.className = 'mb-2 text-xs text-slate-400';
+    loadingDiv.textContent = 'IA está digitando...';
+    messages.appendChild(loadingDiv);
+    messages.scrollTop = messages.scrollHeight;
 
     try {
-        const res = await fetch('/api/ai/chat', { 
-            method: 'POST', 
-            body: JSON.stringify({ message: msg }), 
-            headers: { 'Content-Type': 'application/json' } 
-        });
-        const data = await res.json();
-        
-        const loadingEl = document.getElementById('loading');
-        if (loadingEl) loadingEl.remove();
-        
-        if (data.success) {
-            messages.innerHTML += `<div class="mb-2 text-xs"><strong>IA:</strong> ${data.data}</div>`;
-        } else {
-            showToast(data.error?.message || 'Erro ao conversar com a IA', 'error');
-        }
-    } catch(e) {
-        const loadingEl = document.getElementById('loading');
-        if (loadingEl) loadingEl.remove();
-        showToast('Erro ao conectar ao servidor.', 'error');
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message: msg }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+
+      const loadingEl = document.getElementById('loading');
+      if (loadingEl) loadingEl.remove();
+
+      if (data.success) {
+        const aiDiv = document.createElement('div');
+        aiDiv.className = 'mb-2 text-xs p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200';
+        const reply = typeof data.data === 'string' ? data.data : (data.data?.reply || data.data?.message || JSON.stringify(data.data));
+        aiDiv.innerHTML = `<strong>IA:</strong> `;
+        aiDiv.appendChild(document.createTextNode(reply));
+        messages.appendChild(aiDiv);
+        messages.scrollTop = messages.scrollHeight;
+      } else {
+        if (typeof showToast === 'function') showToast(data.error?.message || 'Erro ao conversar com a IA', 'error');
+      }
+    } catch (e) {
+      const loadingEl = document.getElementById('loading');
+      if (loadingEl) loadingEl.remove();
+      if (typeof showToast === 'function') showToast('Erro ao conectar ao servidor.', 'error');
     }
   }
 </script>

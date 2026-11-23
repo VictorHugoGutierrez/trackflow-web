@@ -149,4 +149,48 @@ export class AuthController {
     const redirectUrl = isSuperAdmin ? "/control-plane" : "/dashboard";
     return res.redirect(redirectUrl);
   }
+
+  static async forgotPassword(req: Request, res: Response) {
+    const { email } = req.body || {};
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/auth/forgot-password`,
+        { email },
+        { timeout: 10000 }
+      );
+      return res.status(response.status).json(response.data);
+    } catch (err: any) {
+      const status = err.response?.status || 500;
+      const data = err.response?.data || {
+        success: false,
+        error: { message: "Erro ao processar recuperação de senha." },
+      };
+      return res.status(status).json(data);
+    }
+  }
+
+  static async aiChat(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { message } = req.body || {};
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/ai/chat`,
+        { message },
+        {
+          headers: token
+            ? { Authorization: `Bearer ${token}`, Cookie: `trackflow_session=${token}` }
+            : {},
+          timeout: 30000,
+        }
+      );
+      return res.status(response.status).json(response.data);
+    } catch (err: any) {
+      const status = err.response?.status || 500;
+      const data = err.response?.data || {
+        success: false,
+        error: { message: "Erro ao conversar com o Assistente IA." },
+      };
+      return res.status(status).json(data);
+    }
+  }
 }

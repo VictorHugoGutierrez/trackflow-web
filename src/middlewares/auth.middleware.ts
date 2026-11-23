@@ -1,8 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { JWTPayload } from '../types/auth.js';
+import {
+  formatDuration,
+  formatDurationShort,
+  formatCurrencyCents,
+  centsToReaisInput,
+  secondsToHoursInput,
+  calculateAmountCents,
+} from '../utils/formatters.js';
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  res.locals.formatDuration = formatDuration;
+  res.locals.formatDurationShort = formatDurationShort;
+  res.locals.formatCurrencyCents = formatCurrencyCents;
+  res.locals.centsToReaisInput = centsToReaisInput;
+  res.locals.secondsToHoursInput = secondsToHoursInput;
+  res.locals.calculateAmountCents = calculateAmountCents;
+
   const token = req.cookies?.trackflow_session;
   const pathname = req.path;
 
@@ -11,7 +26,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     return next();
   }
 
-  const publicPaths = ['/login', '/logout', '/first-access', '/api/auth', '/forgot-password'];
+  const publicPaths = ['/login', '/logout', '/first-access', '/api/auth', '/forgot-password', '/session', '/auth/google', '/ping'];
   const isExempt = publicPaths.some(p => pathname.startsWith(p)) || pathname === '/';
 
   if (!token) {
@@ -28,15 +43,30 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     const secret = process.env.JWT_SECRET || 'super-secret-key';
     const decoded = jwt.verify(token, secret) as JWTPayload;
     req.user = decoded;
+    res.locals.user = decoded;
 
-    if (decoded.mustChangePassword === true && !isExempt && !pathname.startsWith('/first-access')) {
+    if (decoded.mustChangePassword === true && decoded.role !== 'SUPER_ADMIN' && !isExempt && !pathname.startsWith('/first-access')) {
       if (req.accepts('html')) {
         return res.redirect('/first-access');
       }
     }
 
     if (pathname === '/login' && req.accepts('html')) {
-      return res.redirect('/dashboard');
+      return res.redirect(decoded.role === 'SUPER_ADMIN' ? '/control-plane' : '/dashboard');
+    }
+
+    if (pathname.startsWith('/control-plane') && decoded.role !== 'SUPER_ADMIN') {
+      if (req.accepts('html')) {
+        return res.redirect('/dashboard');
+      }
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (pathname.startsWith('/team') && decoded.role === 'MEMBER') {
+      if (req.accepts('html')) {
+        return res.redirect('/dashboard');
+      }
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     return next();

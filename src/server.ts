@@ -20,6 +20,7 @@ import { teamRoutes } from "./routes/team.routes.js";
 import { clientProjectRoutes } from "./routes/client-project.routes.js";
 import { reportRoutes } from "./routes/report.routes.js";
 import { settingsRoutes } from "./routes/settings.routes.js";
+import { controlPlaneRoutes } from "./routes/control-plane.routes.js";
 
 dotenv.config();
 
@@ -75,6 +76,7 @@ app.use(teamRoutes);
 app.use(clientProjectRoutes);
 app.use(reportRoutes);
 app.use(settingsRoutes);
+app.use(controlPlaneRoutes);
 
 app.use((_req, res) => {
   return res.status(404).render("login", {
