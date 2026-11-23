@@ -28,15 +28,22 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
 
   const publicPaths = ['/login', '/logout', '/first-access', '/api/auth', '/forgot-password', '/session', '/auth/google', '/ping'];
   const isExempt = publicPaths.some(p => pathname.startsWith(p)) || pathname === '/';
+  const isApiRequest =
+    pathname.startsWith('/api/') ||
+    req.xhr ||
+    Boolean(req.headers.accept?.includes('application/json') && !req.headers.accept?.includes('text/html'));
 
   if (!token) {
     if (isExempt) {
       return next();
     }
-    if (req.accepts('html')) {
+    if (!isApiRequest && req.accepts('html')) {
       return res.redirect('/login');
     }
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Sessão inválida ou expirada. Faça login novamente.' },
+    });
   }
 
   try {
@@ -46,7 +53,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     res.locals.user = decoded;
 
     if (decoded.mustChangePassword === true && decoded.role !== 'SUPER_ADMIN' && !isExempt && !pathname.startsWith('/first-access')) {
-      if (req.accepts('html')) {
+      if (!isApiRequest && req.accepts('html')) {
         return res.redirect('/first-access');
       }
     }
@@ -56,17 +63,23 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     }
 
     if (pathname.startsWith('/control-plane') && decoded.role !== 'SUPER_ADMIN') {
-      if (req.accepts('html')) {
+      if (!isApiRequest && req.accepts('html')) {
         return res.redirect('/dashboard');
       }
-      return res.status(403).json({ error: 'Forbidden' });
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Acesso negado.' },
+      });
     }
 
     if (pathname.startsWith('/team') && decoded.role === 'MEMBER') {
-      if (req.accepts('html')) {
+      if (!isApiRequest && req.accepts('html')) {
         return res.redirect('/dashboard');
       }
-      return res.status(403).json({ error: 'Forbidden' });
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Acesso negado.' },
+      });
     }
 
     return next();
@@ -77,9 +90,12 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     if (isExempt) {
       return next();
     }
-    if (req.accepts('html')) {
+    if (!isApiRequest && req.accepts('html')) {
       return res.redirect('/login');
     }
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Sessão inválida ou expirada. Faça login novamente.' },
+    });
   }
 }

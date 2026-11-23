@@ -483,7 +483,11 @@ export class ReportController {
 
       return res.status(200).json(response.data);
     } catch (err: any) {
-      if (err.response?.status === 404 && clientId) {
+      if (
+        err.response?.status === 404 &&
+        err.response?.data?.error?.code === "NOT_FOUND" &&
+        clientId
+      ) {
         try {
           const fallbackRes = await axios.post(
             `${API_URL}/api/reports/ai-summary`,
@@ -492,18 +496,21 @@ export class ReportController {
           );
           return res.status(200).json(fallbackRes.data);
         } catch (fallbackErr: any) {
-          const fallbackMsg =
-            fallbackErr.response?.data?.error?.message || "Erro ao gerar resumo executivo com IA.";
-          return res
-            .status(fallbackErr.response?.status || 400)
-            .json({ success: false, error: { message: fallbackMsg } });
+          const fallbackStatus = fallbackErr.response?.status || 500;
+          const fallbackPayload = fallbackErr.response?.data || {
+            success: false,
+            error: { message: "Erro ao gerar resumo executivo com IA." },
+          };
+          return res.status(fallbackStatus).json(fallbackPayload);
         }
       }
 
-      const msg = err.response?.data?.error?.message || "Erro ao gerar resumo executivo com IA.";
-      return res
-        .status(err.response?.status || 400)
-        .json({ success: false, error: { message: msg } });
+      const status = err.response?.status || 500;
+      const payload = err.response?.data || {
+        success: false,
+        error: { message: "Erro ao gerar resumo executivo com IA." },
+      };
+      return res.status(status).json(payload);
     }
   }
 

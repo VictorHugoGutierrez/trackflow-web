@@ -55,7 +55,7 @@
             </span>
           </div>
           <div class="space-y-1 text-xs text-slate-500 dark:text-slate-400">
-            <div>Modelo Ativo: <strong id="val-ollama-model" class="text-purple-600 dark:text-purple-300 font-mono">gemma4</strong></div>
+            <div>Modelo Ativo: <strong id="val-ollama-model" class="text-purple-600 dark:text-purple-300 font-mono">Carregando...</strong></div>
             <div>Relatórios Processados: <strong id="val-ollama-reports" class="text-slate-800 dark:text-slate-200 font-mono">--</strong></div>
           </div>
         </div>
@@ -136,10 +136,18 @@
       }
 
       if (services.ollama) {
-        document.getElementById("val-ollama-model").textContent = services.ollama.model || "gemma4";
+        document.getElementById("val-ollama-model").textContent = services.ollama.model || "Não configurado";
         document.getElementById("val-ollama-reports").textContent = services.ollama.totalReportsProcessed ?? 0;
         const badge = document.getElementById("badge-ollama-status");
-        badge.textContent = (services.ollama.status || "CONNECTED").toUpperCase();
+        const ollamaStatus = String(services.ollama.status || "unreachable").toLowerCase();
+        badge.textContent = ollamaStatus.toUpperCase();
+        if (ollamaStatus === "connected") {
+          badge.className = "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
+        } else if (ollamaStatus === "degraded" || ollamaStatus === "credits_required" || ollamaStatus === "missing_api_key") {
+          badge.className = "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
+        } else {
+          badge.className = "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20";
+        }
       }
 
       if (services.resend) {
