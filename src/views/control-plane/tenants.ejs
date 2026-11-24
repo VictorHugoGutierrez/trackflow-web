@@ -3,10 +3,10 @@
 <div class="flex min-h-screen bg-background text-foreground">
   <%- include('partials/sidebar', { activeTab: 'tenants' }) %>
 
-  <div class="flex-1 flex flex-col min-w-0">
-    <%- include('partials/header', { breadcrumb: 'Gestão de Tenants' }) %>
+  <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+    <%- include('partials/header', { breadcrumb: 'Gestão de Tenants', activeTab: 'tenants' }) %>
 
-    <main class="flex-1 p-8 space-y-6 max-w-7xl w-full mx-auto overflow-y-auto">
+    <main class="flex-1 p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto overflow-y-auto">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Gestão de Empresas (Tenants)</h1>
@@ -15,7 +15,7 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-3 self-start">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start">
           <button
             type="button"
             onclick="openCreateTenantModal()"
@@ -54,7 +54,7 @@
           </svg>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2">
             <span class="text-slate-500 dark:text-slate-400">Plano:</span>
             <select
@@ -95,7 +95,7 @@
                 <th class="px-3.5 xl:px-4 py-3.5 whitespace-nowrap">Status</th>
                 <th class="px-3.5 xl:px-4 py-3.5 whitespace-nowrap">Métricas</th>
                 <th class="px-3.5 xl:px-4 py-3.5 whitespace-nowrap">Criação</th>
-                <th class="px-3.5 xl:px-4 py-3.5 text-right whitespace-nowrap sticky right-0 z-10 bg-slate-50 dark:bg-background border-l border-slate-200/70 dark:border-slate-800/80">Ações</th>
+                <th class="px-3.5 xl:px-4 py-3.5 text-right whitespace-nowrap md:sticky md:right-0 z-10 bg-slate-50 dark:bg-background border-l border-slate-200/70 dark:border-slate-800/80">Ações</th>
               </tr>
             </thead>
             <tbody id="tenants-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -108,7 +108,7 @@
           </table>
         </div>
 
-        <div class="px-6 py-3.5 bg-slate-50 dark:bg-background/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div class="px-4 sm:px-6 py-3.5 bg-slate-50 dark:bg-background/60 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <div id="pagination-info">Mostrando 0 de 0 registros</div>
           <div class="flex items-center gap-2">
             <button
@@ -138,7 +138,7 @@
 </div>
 
 <div id="modal-details" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-6 shadow-2xl">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
       <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-tenant-name">Detalhes do Tenant</h3>
       <button type="button" onclick="closeDetailsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg">
@@ -159,7 +159,7 @@
 </div>
 
 <div id="modal-plan" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
       <h3 class="text-base font-bold text-slate-900 dark:text-white">Alterar Plano do Tenant</h3>
       <button type="button" onclick="closePlanModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg">
@@ -207,7 +207,7 @@
 </div>
 
 <div id="modal-delete" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-  <div class="bg-card border border-red-200 dark:border-red-900/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+  <div class="bg-card border border-red-200 dark:border-red-900/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
     <div class="flex items-center gap-3 text-red-500">
       <div class="p-2 bg-red-500/10 rounded-xl border border-red-500/20">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -236,7 +236,7 @@
 </div>
 
 <div id="modal-create-tenant" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 text-xs shadow-2xl">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 text-xs shadow-2xl max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
       <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold">
@@ -431,8 +431,13 @@
     tbody.innerHTML = list.map(t => {
       const count = t._count || {};
       const owner = t.owner || { name: 'Sem Owner', email: '-' };
-      const createdDate = new Date(t.createdAt).toLocaleDateString('pt-BR');
-      const badge = planBadge[t.plan] || `<span class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${t.plan}</span>`;
+      const createdDate = new Date(t.createdAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      const safeName = escapeHtml(t.name);
+      const safeJsName = escapeJsStr(t.name);
+      const safeOwnerName = escapeHtml(owner.name);
+      const safeOwnerEmail = escapeHtml(owner.email);
+      const safePlan = escapeHtml(t.plan);
+      const badge = planBadge[t.plan] || `<span class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${safePlan}</span>`;
       const statusBadge = t.active
         ? '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Ativo</span>'
         : '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Suspenso</span>';
@@ -441,13 +446,13 @@
         <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
           <td class="px-3.5 xl:px-4 py-3.5 font-semibold text-slate-900 dark:text-white min-w-[140px]">
             <div class="flex items-center gap-2">
-              <span class="truncate max-w-[160px]" title="${escapeHtml(t.name)}">${t.name}</span>
+              <span class="truncate max-w-[160px]" title="${safeName}">${safeName}</span>
             </div>
-            <div class="text-[10px] text-slate-400 font-mono font-normal truncate max-w-[140px]" title="${t.id}">${t.id}</div>
+            <div class="text-[10px] text-slate-400 font-mono font-normal truncate max-w-[140px]" title="${escapeHtml(t.id)}">${escapeHtml(t.id)}</div>
           </td>
           <td class="px-3.5 xl:px-4 py-3.5 min-w-[150px]">
-            <div class="text-slate-800 dark:text-slate-200 font-medium truncate max-w-[170px]" title="${escapeHtml(owner.name)}">${owner.name}</div>
-            <div class="text-slate-500 dark:text-slate-400 text-[11px] truncate max-w-[170px]" title="${escapeHtml(owner.email)}">${owner.email}</div>
+            <div class="text-slate-800 dark:text-slate-200 font-medium truncate max-w-[170px]" title="${safeOwnerName}">${safeOwnerName}</div>
+            <div class="text-slate-500 dark:text-slate-400 text-[11px] truncate max-w-[170px]" title="${safeOwnerEmail}">${safeOwnerEmail}</div>
           </td>
           <td class="px-3.5 xl:px-4 py-3.5 whitespace-nowrap">${badge}</td>
           <td class="px-3.5 xl:px-4 py-3.5 whitespace-nowrap">${statusBadge}</td>
@@ -459,11 +464,11 @@
             </div>
           </td>
           <td class="px-3.5 xl:px-4 py-3.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">${createdDate}</td>
-          <td class="px-3.5 xl:px-4 py-3.5 text-right whitespace-nowrap sticky right-0 bg-card border-l border-slate-100 dark:border-slate-800/80">
+          <td class="px-3.5 xl:px-4 py-3.5 text-right whitespace-nowrap md:sticky md:right-0 bg-card border-l border-slate-100 dark:border-slate-800/80">
             <div class="inline-flex items-center gap-1">
               <button
                 type="button"
-                onclick="openDetailsModal('${t.id}')"
+                onclick="openDetailsModal('${escapeJsStr(t.id)}')"
                 class="px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg transition-colors cursor-pointer"
                 title="Ver detalhes completos"
               >
@@ -471,7 +476,7 @@
               </button>
               <button
                 type="button"
-                onclick="openPlanModal('${t.id}', '${escapeHtml(t.name)}', '${t.plan}')"
+                onclick="openPlanModal('${escapeJsStr(t.id)}', '${safeJsName}', '${escapeJsStr(t.plan)}')"
                 class="px-2 py-1 text-[11px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg transition-colors cursor-pointer"
                 title="Mudar plano comercial"
               >
@@ -479,7 +484,7 @@
               </button>
               <button
                 type="button"
-                onclick="toggleTenantStatus('${t.id}', ${!t.active})"
+                onclick="toggleTenantStatus('${escapeJsStr(t.id)}', ${!t.active})"
                 class="px-2 py-1 text-[11px] ${t.active ? 'text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 bg-amber-500/10 border-amber-500/20' : 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-500/10 border-blue-500/20'} border rounded-lg transition-colors cursor-pointer"
                 title="${t.active ? 'Suspender acesso' : 'Reativar acesso'}"
               >
@@ -487,7 +492,7 @@
               </button>
               <button
                 type="button"
-                onclick="openDeleteModal('${t.id}', '${escapeHtml(t.name)}')"
+                onclick="openDeleteModal('${escapeJsStr(t.id)}', '${safeJsName}')"
                 class="px-1.5 py-1 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border border-transparent hover:border-red-200 dark:hover:border-red-900/50 rounded-lg transition-colors cursor-pointer"
                 title="Excluir empresa"
               >
@@ -513,6 +518,14 @@
     document.getElementById("btn-next-page").disabled = page >= totalPages;
   }
 
+  function getAuthHeaders(includeJsonContentType = false) {
+    const token = localStorage.getItem("trackflow_token");
+    const headers = {};
+    if (includeJsonContentType) headers["Content-Type"] = "application/json";
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return headers;
+  }
+
   async function openDetailsModal(id) {
     const modal = document.getElementById("modal-details");
     const content = document.getElementById("modal-details-content");
@@ -521,7 +534,8 @@
 
     try {
       const res = await fetch(`${API_URL}/api/admin/tenants/${id}`, {
-        credentials: "include"
+        credentials: "include",
+        headers: getAuthHeaders(false)
       });
       if (!res.ok) throw new Error("Erro ao carregar detalhes");
       const result = await res.json();
@@ -533,14 +547,14 @@
       document.getElementById("modal-tenant-name").textContent = t.name;
 
       content.innerHTML = `
-        <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-background rounded-xl border border-slate-200 dark:border-slate-800">
-          <div><span class="text-slate-500 dark:text-slate-400 block">Plano:</span> <span class="font-semibold text-slate-900 dark:text-white uppercase">${t.plan}</span></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-background rounded-xl border border-slate-200 dark:border-slate-800">
+          <div><span class="text-slate-500 dark:text-slate-400 block">Plano:</span> <span class="font-semibold text-slate-900 dark:text-white uppercase">${escapeHtml(t.plan)}</span></div>
           <div><span class="text-slate-500 dark:text-slate-400 block">Status:</span> <span class="${t.active ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'} font-semibold">${t.active ? 'Ativo' : 'Suspenso'}</span></div>
-          <div><span class="text-slate-500 dark:text-slate-400 block">Owner:</span> <span class="text-slate-900 dark:text-white">${owner.name || '-'}</span> (${owner.email || '-'})</div>
-          <div><span class="text-slate-500 dark:text-slate-400 block">Criado em:</span> <span class="text-slate-700 dark:text-slate-300">${new Date(t.createdAt).toLocaleString('pt-BR')}</span></div>
+          <div><span class="text-slate-500 dark:text-slate-400 block">Owner:</span> <span class="text-slate-900 dark:text-white">${escapeHtml(owner.name || '-')}</span> (${escapeHtml(owner.email || '-')})</div>
+          <div><span class="text-slate-500 dark:text-slate-400 block">Criado em:</span> <span class="text-slate-700 dark:text-slate-300">${new Date(t.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span></div>
         </div>
 
-        <div class="grid grid-cols-4 gap-2 text-center">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
           <div class="p-2.5 bg-slate-50 dark:bg-background rounded-xl border border-slate-200 dark:border-slate-800">
             <div class="text-lg font-bold text-slate-900 dark:text-white">${count.users ?? 0}</div>
             <div class="text-[10px] text-slate-500 dark:text-slate-400">Usuários</div>
@@ -563,12 +577,12 @@
           <h4 class="font-semibold text-slate-900 dark:text-white mb-2">Membros do Workspace (${users.length})</h4>
           <div class="max-h-36 overflow-y-auto space-y-1 divide-y divide-slate-100 dark:divide-slate-800/40">
             ${users.map(u => `
-              <div class="flex items-center justify-between py-1.5 text-xs">
-                <div>
-                  <span class="font-medium text-slate-800 dark:text-slate-200">${u.name}</span>
-                  <span class="text-slate-500 dark:text-slate-400 text-[11px] block">${u.email}</span>
+              <div class="flex items-center justify-between py-1.5 text-xs gap-2">
+                <div class="min-w-0">
+                  <span class="font-medium text-slate-800 dark:text-slate-200 truncate block">${escapeHtml(u.name)}</span>
+                  <span class="text-slate-500 dark:text-slate-400 text-[11px] block truncate">${escapeHtml(u.email)}</span>
                 </div>
-                <span class="px-2 py-0.5 text-[10px] rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono">${u.role}</span>
+                <span class="px-2 py-0.5 text-[10px] rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono shrink-0">${escapeHtml(u.role)}</span>
               </div>
             `).join('')}
           </div>
@@ -612,15 +626,16 @@
     try {
       const res = await fetch(`${API_URL}/api/admin/tenants/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(true),
         credentials: "include",
         body: JSON.stringify({ plan: selectedPlan })
       });
       if (!res.ok) throw new Error("Erro ao atualizar plano");
       closePlanModal();
+      if (typeof showToast === "function") showToast("Plano do tenant atualizado com sucesso!", "success");
       fetchTenants();
     } catch (err) {
-      alert("Falha ao atualizar plano.");
+      if (typeof showToast === "function") showToast("Falha ao atualizar plano.", "error");
     } finally {
       btn.textContent = "Salvar Alteração";
       btn.disabled = false;
@@ -634,14 +649,17 @@
     try {
       const res = await fetch(`${API_URL}/api/admin/tenants/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(true),
         credentials: "include",
         body: JSON.stringify({ active: newStatus })
       });
       if (!res.ok) throw new Error("Erro ao alterar status");
+      if (typeof showToast === "function") {
+        showToast(newStatus ? "Tenant reativado com sucesso!" : "Tenant suspenso com sucesso!", "success");
+      }
       fetchTenants();
     } catch (err) {
-      alert("Falha ao alterar status do tenant.");
+      if (typeof showToast === "function") showToast("Falha ao alterar status do tenant.", "error");
     }
   }
 
@@ -665,13 +683,15 @@
     try {
       const res = await fetch(`${API_URL}/api/admin/tenants/${id}`, {
         method: "DELETE",
+        headers: getAuthHeaders(false),
         credentials: "include"
       });
       if (!res.ok) throw new Error("Erro ao excluir tenant");
       closeDeleteModal();
+      if (typeof showToast === "function") showToast("Tenant excluído com sucesso!", "success");
       fetchTenants();
     } catch (err) {
-      alert("Falha ao excluir tenant.");
+      if (typeof showToast === "function") showToast("Falha ao excluir tenant.", "error");
     } finally {
       btn.textContent = "Confirmar Exclusão";
       btn.disabled = false;
@@ -682,6 +702,11 @@
     const feedback = document.getElementById("modal-create-feedback");
     feedback.className = "hidden p-3 rounded-xl border text-xs";
     feedback.textContent = "";
+    const btn = document.getElementById("btn-submit-create-tenant");
+    if (btn) {
+      btn.textContent = "Criar Tenant & Owner";
+      btn.disabled = false;
+    }
     document.getElementById("form-create-tenant").reset();
     document.getElementById("modal-create-tenant").classList.remove("hidden");
   }
@@ -694,13 +719,13 @@
     event.preventDefault();
     const feedback = document.getElementById("modal-create-feedback");
     const btn = document.getElementById("btn-submit-create-tenant");
-    const originalText = btn.textContent;
+    const originalText = "Criar Tenant & Owner";
 
-    const workspaceName = document.getElementById("create-tenant-name").value.trim();
+    const name = document.getElementById("create-tenant-name").value.trim();
     const plan = document.getElementById("create-tenant-plan").value;
-    const name = document.getElementById("create-owner-name").value.trim();
-    const email = document.getElementById("create-owner-email").value.trim();
-    const password = document.getElementById("create-owner-password").value;
+    const ownerName = document.getElementById("create-owner-name").value.trim();
+    const ownerEmail = document.getElementById("create-owner-email").value.trim();
+    const ownerPassword = document.getElementById("create-owner-password").value;
 
     feedback.className = "hidden p-3 rounded-xl border text-xs";
     feedback.textContent = "";
@@ -708,10 +733,11 @@
     btn.disabled = true;
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch(`${API_URL}/api/admin/tenants`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, workspaceName }),
+        headers: getAuthHeaders(true),
+        credentials: "include",
+        body: JSON.stringify({ name, plan, ownerName, ownerEmail, ownerPassword }),
       });
 
       const result = await res.json();
@@ -719,28 +745,16 @@
         throw new Error(result.error?.message || result.message || "Falha ao criar tenant e owner.");
       }
 
-      const createdTenant = result.data?.tenant;
-
-      if (plan && plan !== "freemium" && createdTenant?.id) {
-        const token = localStorage.getItem("trackflow_token");
-        const headers = { "Content-Type": "application/json" };
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-
-        await fetch(`${API_URL}/api/admin/tenants/${createdTenant.id}`, {
-          method: "PATCH",
-          headers,
-          credentials: "include",
-          body: JSON.stringify({ plan }),
-        });
-      }
-
       feedback.className = "p-3 rounded-xl border text-xs bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400";
-      feedback.textContent = "Tenant e Owner cadastrados com sucesso!";
+      feedback.textContent = "Tenant e Owner provisionados com sucesso!";
+      if (typeof showToast === "function") showToast("Tenant provisionado com sucesso!", "success");
 
       setTimeout(() => {
         closeCreateTenantModal();
+        btn.textContent = originalText;
+        btn.disabled = false;
         fetchTenants(1);
-      }, 700);
+      }, 600);
     } catch (err) {
       feedback.className = "p-3 rounded-xl border text-xs bg-red-500/10 border-red-500/20 text-red-500";
       feedback.textContent = err.message;
@@ -750,8 +764,31 @@
   }
 
   function escapeHtml(str) {
-    return (str || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    return String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
+
+  function escapeJsStr(str) {
+    return String(str ?? "")
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "\\u003c")
+      .replace(/>/g, "\\u003e");
+  }
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeDetailsModal();
+      closePlanModal();
+      closeDeleteModal();
+      closeCreateTenantModal();
+    }
+  });
 
   document.addEventListener("DOMContentLoaded", () => fetchTenants(1));
 </script>

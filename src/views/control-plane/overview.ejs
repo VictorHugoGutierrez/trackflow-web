@@ -3,10 +3,10 @@
 <div class="flex min-h-screen bg-background text-foreground">
   <%- include('partials/sidebar', { activeTab: 'overview' }) %>
 
-  <div class="flex-1 flex flex-col min-w-0">
-    <%- include('partials/header', { breadcrumb: 'Visão Geral' }) %>
+  <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+    <%- include('partials/header', { breadcrumb: 'Visão Geral', activeTab: 'overview' }) %>
 
-    <main class="flex-1 p-8 space-y-8 max-w-7xl w-full mx-auto overflow-y-auto">
+    <main class="flex-1 p-4 md:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-7xl w-full mx-auto overflow-y-auto">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard Operacional do SaaS</h1>
@@ -66,7 +66,7 @@
 
         <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
           <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Horas Hoje</span>
+            <span id="metric-hours-label" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Horas no Mês</span>
             <div class="p-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" stroke-width="2"/>
@@ -78,8 +78,9 @@
             <span id="metric-today-hours" class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">0.0</span>
             <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">horas</span>
           </div>
-          <div class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60">
-            Registros totais: <strong id="metric-total-entries" class="text-slate-700 dark:text-slate-300 font-mono font-normal">--</strong>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between gap-2">
+            <span>No período: <strong id="metric-period-entries" class="text-slate-700 dark:text-slate-300 font-mono font-normal">--</strong></span>
+            <span>Totais: <strong id="metric-total-entries" class="text-slate-700 dark:text-slate-300 font-mono font-normal">--</strong></span>
           </div>
         </div>
       </div>
@@ -108,41 +109,41 @@
           </div>
 
           <div class="space-y-4 text-xs">
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                <div>
-                  <div class="font-semibold text-slate-900 dark:text-white">PostgreSQL (Neon)</div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-3 min-w-0">
+                <span id="overview-db-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                <div class="min-w-0">
+                  <div class="font-semibold text-slate-900 dark:text-white truncate">PostgreSQL (Neon)</div>
                   <div class="text-[10px] text-slate-500 dark:text-slate-400">Multi-tenant Schema</div>
                 </div>
               </div>
-              <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span id="overview-db-status" class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
                 Online
               </span>
             </div>
 
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <span id="overview-ollama-dot" class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                <div>
-                  <div class="font-semibold text-slate-900 dark:text-white">Ollama IA</div>
-                  <div id="overview-ollama-subtitle" class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Verificando modelo...</div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-3 min-w-0">
+                <span id="overview-ollama-dot" class="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0"></span>
+                <div class="min-w-0">
+                  <div class="font-semibold text-slate-900 dark:text-white truncate">Ollama IA</div>
+                  <div id="overview-ollama-subtitle" class="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate">Verificando modelo...</div>
                 </div>
               </div>
-              <span id="overview-ollama-status" class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+              <span id="overview-ollama-status" class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shrink-0">
                 Verificando
               </span>
             </div>
 
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                <div>
-                  <div class="font-semibold text-slate-900 dark:text-white">Resend E-mails</div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-background border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-3 min-w-0">
+                <span id="overview-resend-dot" class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+                <div class="min-w-0">
+                  <div class="font-semibold text-slate-900 dark:text-white truncate">Resend E-mails</div>
                   <div class="text-[10px] text-slate-500 dark:text-slate-400">Disparo de Faturas</div>
                 </div>
               </div>
-              <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+              <span id="overview-resend-status" class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
                 Configurado
               </span>
             </div>
@@ -163,16 +164,26 @@
 <script>
   const API_URL = "<%= typeof apiUrl !== 'undefined' ? apiUrl : 'http://localhost:3333' %>";
 
-  async function loadMetrics() {
+  async function loadMetrics(selectedPeriod) {
     const icon = document.getElementById("refresh-icon");
     if (icon) icon.classList.add("animate-spin");
+
+    const periodSelect = document.getElementById("period-selector");
+    const period = selectedPeriod || (periodSelect ? periodSelect.value : "30d");
+
+    const periodLabels = {
+      today: "Horas Hoje",
+      "7d": "Horas (7 dias)",
+      "30d": "Horas no Mês",
+      all: "Horas Totais"
+    };
 
     try {
       const token = localStorage.getItem("trackflow_token");
       const headers = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const res = await fetch(`${API_URL}/api/admin/metrics`, {
+      const res = await fetch(`${API_URL}/api/admin/metrics?period=${encodeURIComponent(period)}`, {
         credentials: "include",
         headers
       });
@@ -193,7 +204,13 @@
         currency: 'BRL'
       }).format(mrrValue);
 
-      document.getElementById("metric-today-hours").textContent = Number(overview.todayHours ?? overview.hoursTrackedToday ?? 0).toFixed(1);
+      const hoursLabelEl = document.getElementById("metric-hours-label");
+      if (hoursLabelEl) hoursLabelEl.textContent = periodLabels[period] || "Horas no Mês";
+
+      const displayHours = overview.periodHours ?? overview.todayHours ?? overview.hoursTrackedToday ?? 0;
+      document.getElementById("metric-today-hours").textContent = Number(displayHours).toFixed(1);
+      const periodEntriesEl = document.getElementById("metric-period-entries");
+      if (periodEntriesEl) periodEntriesEl.textContent = overview.periodEntries ?? overview.totalTimeEntries ?? 0;
       document.getElementById("metric-total-entries").textContent = overview.totalTimeEntries ?? 0;
 
       const plansList = financial.tenantsByPlan || financial.distributionByPlan || [];
@@ -206,7 +223,39 @@
         });
         if (logsRes.ok) {
           const logsJson = await logsRes.json();
-          const ollamaInfo = logsJson.data?.services?.ollama;
+          const services = logsJson.data?.services || {};
+
+          if (services.database) {
+            const dbBadge = document.getElementById("overview-db-status");
+            const dbDot = document.getElementById("overview-db-dot");
+            const isHealthy = services.database.status === "healthy";
+            if (dbBadge) {
+              dbBadge.textContent = isHealthy ? "Online" : "Offline";
+              dbBadge.className = isHealthy
+                ? "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0"
+                : "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 shrink-0";
+            }
+            if (dbDot) {
+              dbDot.className = `w-2.5 h-2.5 rounded-full shrink-0 ${isHealthy ? "bg-emerald-500" : "bg-red-500"}`;
+            }
+          }
+
+          if (services.resend) {
+            const resendBadge = document.getElementById("overview-resend-status");
+            const resendDot = document.getElementById("overview-resend-dot");
+            const isConfigured = services.resend.status === "configured";
+            if (resendBadge) {
+              resendBadge.textContent = isConfigured ? "Configurado" : "Sem Chave";
+              resendBadge.className = isConfigured
+                ? "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0"
+                : "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0";
+            }
+            if (resendDot) {
+              resendDot.className = `w-2.5 h-2.5 rounded-full shrink-0 ${isConfigured ? "bg-blue-500" : "bg-amber-500"}`;
+            }
+          }
+
+          const ollamaInfo = services.ollama;
           if (ollamaInfo) {
             const subEl = document.getElementById("overview-ollama-subtitle");
             const badgeEl = document.getElementById("overview-ollama-status");
@@ -216,23 +265,24 @@
             if (badgeEl) {
               badgeEl.textContent = status.toUpperCase();
               if (status === "connected") {
-                badgeEl.className = "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
-                if (dotEl) dotEl.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+                badgeEl.className = "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0";
+                if (dotEl) dotEl.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0";
               } else if (status === "degraded" || status === "credits_required" || status === "missing_api_key") {
-                badgeEl.className = "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
-                if (dotEl) dotEl.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+                badgeEl.className = "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0";
+                if (dotEl) dotEl.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0";
               } else {
-                badgeEl.className = "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20";
-                if (dotEl) dotEl.className = "w-2.5 h-2.5 rounded-full bg-red-500";
+                badgeEl.className = "px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 shrink-0";
+                if (dotEl) dotEl.className = "w-2.5 h-2.5 rounded-full bg-red-500 shrink-0";
               }
             }
           }
         }
       } catch (logsErr) {
-        console.warn("Não foi possível carregar status do Ollama:", logsErr);
+        console.warn("Não foi possível carregar status dos serviços:", logsErr);
       }
     } catch (err) {
       console.error(err);
+      if (typeof showToast === "function") showToast("Falha ao carregar métricas do Control Plane.", "error");
     } finally {
       if (icon) icon.classList.remove("animate-spin");
     }
@@ -281,11 +331,11 @@
   }
 
   function handlePeriodChange(period) {
-    loadMetrics();
+    loadMetrics(period);
   }
   window.handlePeriodChange = handlePeriodChange;
 
-  document.addEventListener("DOMContentLoaded", loadMetrics);
+  document.addEventListener("DOMContentLoaded", () => loadMetrics());
 </script>
 
 </body>
