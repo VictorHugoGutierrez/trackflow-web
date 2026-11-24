@@ -5,4 +5,5 @@ export const settingsRoutes = Router();
 
 settingsRoutes.get("/settings", SettingsController.render);
 settingsRoutes.post("/settings/profile", SettingsController.updateProfile);
+settingsRoutes.post("/settings/password", SettingsController.changePassword);
 settingsRoutes.post("/settings/preferences", SettingsController.updatePreferences);

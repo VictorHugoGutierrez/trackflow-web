@@ -3,10 +3,16 @@ export type UserRole = "SUPER_ADMIN" | "OWNER" | "MANAGER" | "MEMBER";
 export interface JWTPayload {
   sub: string;
   tenantId: string | null;
+  tenantName?: string | null;
+  tenantPlan?: string | null;
   role: UserRole;
   email: string;
   name?: string;
+  active?: boolean;
   mustChangePassword?: boolean;
+  pomodoroWork?: number;
+  pomodoroBreak?: number;
+  theme?: string;
   iat?: number;
   exp?: number;
 }

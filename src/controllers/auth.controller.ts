@@ -93,6 +93,9 @@ export class AuthController {
   }
 
   static renderFirstAccess(req: Request, res: Response) {
+    if (!req.cookies?.trackflow_session) {
+      return res.redirect("/login");
+    }
     return res.render("first-access", {
       pageTitle: "Troca de Senha Obrigatória",
       error: req.query.error || null,
@@ -101,17 +104,57 @@ export class AuthController {
 
   static async handleFirstAccess(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
-    const { password } = req.body;
+    if (!token) {
+      return res.redirect("/login");
+    }
+
+    const { password, newPassword, confirmPassword } = req.body || {};
+    const pwd = String(newPassword || password || "");
+
+    if (!pwd || pwd.length < 6) {
+      return res.redirect(
+        `/first-access?error=${encodeURIComponent("A nova senha deve conter no mínimo 6 caracteres.")}`
+      );
+    }
+
+    if (confirmPassword !== undefined && pwd !== String(confirmPassword)) {
+      return res.redirect(
+        `/first-access?error=${encodeURIComponent("As senhas informadas não coincidem.")}`
+      );
+    }
 
     try {
-      await axios.patch(
+      const response = await axios.patch(
         `${API_URL}/api/auth/first-access`,
-        { password },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { newPassword: pwd },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Cookie: `trackflow_session=${token}`,
+          },
+          timeout: 8000,
+        }
       );
-      return res.redirect("/dashboard?success=Senha+atualizada+com+sucesso!");
+
+      const updatedToken = response.data?.data?.token;
+      if (updatedToken) {
+        const isProduction = process.env.NODE_ENV === "production";
+        res.cookie("trackflow_session", updatedToken, {
+          path: "/",
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
+
+      return res.redirect("/dashboard?success=Senha+definida+com+sucesso!");
     } catch (err: any) {
-      return res.redirect("/first-access?error=Falha+ao+atualizar+senha.");
+      const msg =
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        "Falha ao atualizar senha.";
+      return res.redirect(`/first-access?error=${encodeURIComponent(msg)}`);
     }
   }
 

@@ -131,12 +131,81 @@ export class SettingsController {
         },
       );
 
+      const updatedToken = response.data?.data?.token;
+      if (updatedToken) {
+        const isProduction = process.env.NODE_ENV === "production";
+        res.cookie("trackflow_session", updatedToken, {
+          path: "/",
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
+
       if (wantsJson) return res.status(200).json(response.data);
       return res.redirect("/settings?tab=preferences&success=Preferências+salvas+com+sucesso!");
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || "Erro ao salvar preferências.";
       if (wantsJson) return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
       return res.redirect(`/settings?tab=preferences&error=${encodeURIComponent(msg)}`);
+    }
+  }
+
+  static async changePassword(req: Request, res: Response) {
+    const token = req.cookies?.trackflow_session;
+    const { oldPassword, newPassword, confirmPassword } = req.body || {};
+    const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+    if (!oldPassword || !newPassword) {
+      const msg = "Informe sua senha atual e a nova senha.";
+      if (wantsJson) return res.status(400).json({ success: false, error: { message: msg } });
+      return res.redirect(`/settings?tab=profile&error=${encodeURIComponent(msg)}`);
+    }
+
+    if (String(newPassword).length < 6) {
+      const msg = "A nova senha deve conter no mínimo 6 caracteres.";
+      if (wantsJson) return res.status(400).json({ success: false, error: { message: msg } });
+      return res.redirect(`/settings?tab=profile&error=${encodeURIComponent(msg)}`);
+    }
+
+    if (confirmPassword !== undefined && String(newPassword) !== String(confirmPassword)) {
+      const msg = "A confirmação da nova senha não coincide.";
+      if (wantsJson) return res.status(400).json({ success: false, error: { message: msg } });
+      return res.redirect(`/settings?tab=profile&error=${encodeURIComponent(msg)}`);
+    }
+
+    try {
+      const response = await axios.patch(
+        `${API_URL}/api/auth/change-password`,
+        { oldPassword, newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Cookie: `trackflow_session=${token}`,
+          },
+          timeout: 5000,
+        },
+      );
+
+      const updatedToken = response.data?.data?.token;
+      if (updatedToken) {
+        const isProduction = process.env.NODE_ENV === "production";
+        res.cookie("trackflow_session", updatedToken, {
+          path: "/",
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
+
+      if (wantsJson) return res.status(200).json(response.data);
+      return res.redirect("/settings?tab=profile&success=Senha+alterada+com+sucesso!");
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || "Erro ao alterar senha.";
+      if (wantsJson) return res.status(err.response?.status || 400).json({ success: false, error: { message: msg } });
+      return res.redirect(`/settings?tab=profile&error=${encodeURIComponent(msg)}`);
     }
   }
 }
