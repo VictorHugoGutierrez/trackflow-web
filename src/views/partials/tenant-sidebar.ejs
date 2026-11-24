@@ -65,15 +65,17 @@
     <div class="space-y-1">
       <div class="px-3 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Administração</div>
 
-      <a
-        href="/team"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all <%= typeof activeTab !== 'undefined' && activeTab === 'team' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' %>"
-      >
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-        </svg>
-        <% if (typeof user !== 'undefined' && user && user.role !== 'MEMBER') { %><span>Gestão de Equipe</span><% } %>
-      </a>
+      <% if (typeof user !== 'undefined' && user && user.role !== 'MEMBER') { %>
+        <a
+          href="/team"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all <%= typeof activeTab !== 'undefined' && activeTab === 'team' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' %>"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <span>Gestão de Equipe</span>
+        </a>
+      <% } %>
 
       <a
         href="/settings"

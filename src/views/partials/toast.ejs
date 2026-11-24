@@ -1,10 +1,11 @@
-<div id="toast-container" class="fixed top-20 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+<div id="toast-container" class="fixed top-20 right-4 sm:right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-[calc(100vw-2rem)]"></div>
 
 <script>
   function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
+    if (!container) return;
     const toast = document.createElement('div');
-    toast.className = `pointer-events-auto px-4 py-3 rounded-lg shadow-lg text-sm text-white transition-all duration-300 ${type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-amber-600'}`;
+    toast.className = `pointer-events-auto px-4 py-3 rounded-lg shadow-lg text-sm text-white transition-all duration-300 break-words ${type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-amber-600'}`;
     toast.textContent = message;
     container.appendChild(toast);
     setTimeout(() => {

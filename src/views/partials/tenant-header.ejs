@@ -67,9 +67,22 @@
 
       <button
         type="button"
+        id="mobile-timer-toggle-btn"
+        onclick="toggleMobileTimerBar()"
+        aria-label="Definir tarefa e projeto"
+        title="Definir atividade e projeto"
+        class="md:hidden p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300 hover:text-emerald-500 transition-colors shrink-0 cursor-pointer"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+      </button>
+
+      <button
+        type="button"
         id="global-timer-btn"
         onclick="toggleGlobalTimer()"
-        class="h-9 px-2 lg:px-3.5 rounded-lg font-bold text-xs flex items-center gap-1 lg:gap-1.5 transition-all shadow-sm cursor-pointer bg-play hover:bg-play/90 text-white shadow-play/20 active:scale-95 shrink-0 whitespace-nowrap"
+        class="h-9 px-2.5 lg:px-3.5 rounded-lg font-bold text-xs flex items-center gap-1 lg:gap-1.5 transition-all shadow-sm cursor-pointer bg-play hover:bg-play/90 text-white shadow-play/20 active:scale-95 shrink-0 whitespace-nowrap"
       >
         <svg id="global-timer-play-icon" class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z" />
@@ -118,6 +131,38 @@
       </div>
     </div>
   </div>
+
+  <div id="mobile-timer-bar" class="hidden md:hidden px-3 pb-3 pt-2 border-t border-slate-200/70 dark:border-slate-800 bg-card/95 flex-col gap-2">
+    <input
+      type="text"
+      id="mobile-timer-desc"
+      placeholder="No que você está trabalhando?"
+      class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+    />
+    <div class="flex items-center gap-2">
+      <select
+        id="mobile-timer-project"
+        class="flex-1 min-w-0 px-2.5 py-2 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+      >
+        <option value="">Sem projeto</option>
+        <% if (typeof projects !== 'undefined' && projects && projects.length > 0) { %>
+          <% projects.forEach(function(p) { %>
+            <% if (p.status !== 'COMPLETED') { %>
+              <option value="<%= p.id %>"><%= p.name %></option>
+            <% } %>
+          <% }); %>
+        <% } %>
+      </select>
+      <button
+        type="button"
+        onclick="togglePomodoroMode()"
+        class="px-2.5 py-2 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300 shrink-0 cursor-pointer"
+        title="Alternar Modo Pomodoro"
+      >
+        ⏱️ <span id="mobile-pomodoro-label">Normal</span>
+      </button>
+    </div>
+  </div>
 </header>
 
 <%- include('modals') %>
@@ -130,27 +175,56 @@
     let isRunning = false;
     let activeEntryId = null;
     let timerStartTime = null;
+    let pomodoroNotifiedEntryId = null;
     let isPomodoro = localStorage.getItem('trackflow-pomodoro-mode') === 'true';
-    let pomodoroDuration = 25 * 60;
+    const userPomodoroWork = <%= (typeof user !== 'undefined' && user && user.pomodoroWork) ? Number(user.pomodoroWork) : 25 %>;
+    const userPomodoroBreak = <%= (typeof user !== 'undefined' && user && user.pomodoroBreak) ? Number(user.pomodoroBreak) : 5 %>;
+    let pomodoroDuration = Math.max(1, userPomodoroWork) * 60;
 
     const clockEl = document.getElementById('global-timer-clock');
     const descEl = document.getElementById('global-timer-desc');
     const projectEl = document.getElementById('global-timer-project');
+    const mobileDescEl = document.getElementById('mobile-timer-desc');
+    const mobileProjectEl = document.getElementById('mobile-timer-project');
+    const mobileBarEl = document.getElementById('mobile-timer-bar');
     const btnEl = document.getElementById('global-timer-btn');
     const btnTextEl = document.getElementById('global-timer-btn-text');
     const playIconEl = document.getElementById('global-timer-play-icon');
     const stopIconEl = document.getElementById('global-timer-stop-icon');
     const pomodoroLabelEl = document.getElementById('pomodoro-label');
+    const mobilePomodoroLabelEl = document.getElementById('mobile-pomodoro-label');
+
+    if (descEl && mobileDescEl) {
+      descEl.addEventListener('input', () => { mobileDescEl.value = descEl.value; });
+      mobileDescEl.addEventListener('input', () => { descEl.value = mobileDescEl.value; });
+    }
+    if (projectEl && mobileProjectEl) {
+      projectEl.addEventListener('change', () => { mobileProjectEl.value = projectEl.value; });
+      mobileProjectEl.addEventListener('change', () => { projectEl.value = mobileProjectEl.value; });
+    }
+
+    window.toggleMobileTimerBar = function() {
+      if (!mobileBarEl) return;
+      if (mobileBarEl.classList.contains('hidden')) {
+        mobileBarEl.classList.remove('hidden');
+        mobileBarEl.classList.add('flex');
+      } else {
+        mobileBarEl.classList.add('hidden');
+        mobileBarEl.classList.remove('flex');
+      }
+    };
 
     function updatePomodoroUI() {
-      if (!pomodoroLabelEl) return;
-      if (isPomodoro) {
-        pomodoroLabelEl.textContent = 'Pomodoro (25m)';
-        pomodoroLabelEl.classList.add('text-amber-500', 'font-semibold');
-      } else {
-        pomodoroLabelEl.textContent = 'Normal';
-        pomodoroLabelEl.classList.remove('text-amber-500', 'font-semibold');
-      }
+      const labelText = isPomodoro ? `Pomodoro (${userPomodoroWork}m)` : 'Normal';
+      [pomodoroLabelEl, mobilePomodoroLabelEl].forEach((el) => {
+        if (!el) return;
+        el.textContent = labelText;
+        if (isPomodoro) {
+          el.classList.add('text-amber-500', 'font-semibold');
+        } else {
+          el.classList.remove('text-amber-500', 'font-semibold');
+        }
+      });
     }
 
     window.togglePomodoroMode = function() {
@@ -184,31 +258,39 @@
     }
 
     function selectProjectOption(projectId, projectName) {
-      if (!projectEl) return;
       const normalizedId = projectId ? String(projectId).trim() : '';
-      if (!normalizedId) {
-        projectEl.value = '';
-        return;
-      }
-      let opt = Array.from(projectEl.options).find(o => o.value === normalizedId);
-      if (!opt) {
-        opt = document.createElement('option');
-        opt.value = normalizedId;
-        opt.textContent = projectName || 'Projeto';
-        projectEl.appendChild(opt);
-      }
-      projectEl.value = normalizedId;
+      [projectEl, mobileProjectEl].forEach((selectEl) => {
+        if (!selectEl) return;
+        if (!normalizedId) {
+          selectEl.value = '';
+          return;
+        }
+        let opt = Array.from(selectEl.options).find(o => o.value === normalizedId);
+        if (!opt) {
+          opt = document.createElement('option');
+          opt.value = normalizedId;
+          opt.textContent = projectName || 'Projeto';
+          selectEl.appendChild(opt);
+        }
+        selectEl.value = normalizedId;
+      });
     }
 
     function renderRunningState(startTime, desc, projId, entryId, projName) {
       isRunning = true;
       timerStartTime = startTime;
       activeEntryId = entryId;
+      if (pomodoroNotifiedEntryId !== entryId) {
+        pomodoroNotifiedEntryId = null;
+      }
 
-      if (descEl && desc !== undefined && desc !== null) descEl.value = desc;
+      if (desc !== undefined && desc !== null) {
+        if (descEl) descEl.value = desc;
+        if (mobileDescEl) mobileDescEl.value = desc;
+      }
       selectProjectOption(projId, projName);
 
-      btnEl.className = 'h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-stop hover:bg-stop/90 text-white shadow-stop/20 active:scale-95 animate-pulse';
+      btnEl.className = 'h-9 px-2.5 lg:px-3.5 rounded-lg font-bold text-xs flex items-center gap-1 lg:gap-1.5 transition-all shadow-sm cursor-pointer bg-stop hover:bg-stop/90 text-white shadow-stop/20 active:scale-95 animate-pulse shrink-0 whitespace-nowrap';
       btnTextEl.textContent = 'Parar';
       playIconEl.classList.add('hidden');
       stopIconEl.classList.remove('hidden');
@@ -217,11 +299,15 @@
       timerInterval = setInterval(() => {
         const elapsedSecs = Math.max(0, Math.floor((Date.now() - timerStartTime) / 1000));
         
-        if (isPomodoro && elapsedSecs >= pomodoroDuration) {
+        if (isPomodoro && elapsedSecs >= pomodoroDuration && pomodoroNotifiedEntryId !== activeEntryId) {
+          pomodoroNotifiedEntryId = activeEntryId;
           playChime();
-          if (Notification && Notification.permission === 'granted') {
+          if (typeof showToast === 'function') {
+            showToast(`Pomodoro concluído! Hora de descansar ${userPomodoroBreak} minutos.`, 'warning');
+          }
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
             new Notification('TrackFlow: Pomodoro Concluído!', {
-              body: 'Hora de fazer um intervalo de 5 minutos.'
+              body: `Hora de fazer um intervalo de ${userPomodoroBreak} minutos.`
             });
           }
         }
@@ -237,11 +323,12 @@
       isRunning = false;
       activeEntryId = null;
       timerStartTime = null;
+      pomodoroNotifiedEntryId = null;
 
       if (timerInterval) clearInterval(timerInterval);
       clockEl.textContent = '00:00:00';
 
-      btnEl.className = 'h-9 px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer bg-play hover:bg-play/90 text-white shadow-play/20 active:scale-95';
+      btnEl.className = 'h-9 px-2.5 lg:px-3.5 rounded-lg font-bold text-xs flex items-center gap-1 lg:gap-1.5 transition-all shadow-sm cursor-pointer bg-play hover:bg-play/90 text-white shadow-play/20 active:scale-95 shrink-0 whitespace-nowrap';
       btnTextEl.textContent = 'Iniciar';
       playIconEl.classList.remove('hidden');
       stopIconEl.classList.add('hidden');
