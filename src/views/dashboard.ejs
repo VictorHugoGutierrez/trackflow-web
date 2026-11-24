@@ -188,8 +188,8 @@
                 <% timeEntries.forEach(function(entry) { %>
                   <%
                     const durFormatted = formatDuration(entry.durationSeconds);
-                    const startTimeFormatted = new Date(entry.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    const endTimeFormatted = entry.end ? new Date(entry.end).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Em andamento';
+                    const startTimeFormatted = new Date(entry.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+                    const endTimeFormatted = entry.end ? new Date(entry.end).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : 'Em andamento';
                   %>
                   <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer" onclick="openEditModal('<%= entry.id %>', '<%= esc(entry.description || '') %>', '<%= entry.projectId || '' %>', '<%= entry.start %>', '<%= entry.end || '' %>', <%= entry.billable ? 'true' : 'false' %>)">
                     <td class="px-4 py-3.5 font-medium text-slate-900 dark:text-white">
@@ -275,7 +275,7 @@
 </div>
 
 <div id="modal-manual" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
-  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
@@ -369,7 +369,7 @@
 </div>
 
 <div id="modal-edit" class="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
-  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in">
+  <div class="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scale-in max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
@@ -573,3 +573,6 @@
     }
   });
 </script>
+
+</body>
+</html>

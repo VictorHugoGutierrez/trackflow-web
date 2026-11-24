@@ -39,21 +39,37 @@ export interface ProjectReportSummary {
   entriesCount: number;
 }
 
+function getCurrentMonthBRT(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  })
+    .format(new Date())
+    .slice(0, 7);
+}
+
 function getMonthDateRange(monthStr: string) {
-  const now = new Date();
-  const [yStr, mStr] = (monthStr || "").split("-");
-  const year = Number(yStr) || now.getFullYear();
-  const monthIndex = (Number(mStr) || now.getMonth() + 1) - 1;
-  const startDate = new Date(year, monthIndex, 1, 0, 0, 0, 0).toISOString();
-  const endDate = new Date(year, monthIndex + 1, 0, 23, 59, 59, 999).toISOString();
+  const fallback = getCurrentMonthBRT();
+  const match = /^(\d{4})-(\d{2})$/.exec((monthStr || "").trim());
+  const [yStr, mStr] = match ? [match[1], match[2]] : fallback.split("-");
+  const year = Number(yStr);
+  const month = Number(mStr);
+  const lastDay = new Date(year, month, 0).getDate();
+  const mm = String(month).padStart(2, "0");
+  const dd = String(lastDay).padStart(2, "0");
+  const startDate = new Date(`${year}-${mm}-01T00:00:00.000-03:00`).toISOString();
+  const endDate = new Date(`${year}-${mm}-${dd}T23:59:59.999-03:00`).toISOString();
   return { startDate, endDate };
 }
 
 export class ReportController {
   static async render(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
-    const now = new Date();
-    const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const isFinanceManager =
+      req.user?.role === "OWNER" ||
+      req.user?.role === "MANAGER" ||
+      req.user?.role === "SUPER_ADMIN";
+
+    const currentMonthStr = getCurrentMonthBRT();
     const selectedMonth = (req.query.month as string) || currentMonthStr;
     const selectedClientId = (req.query.clientId as string) || "";
     const selectedProjectId = (req.query.projectId as string) || "";
@@ -95,6 +111,7 @@ export class ReportController {
           endDate,
           limit: "200",
         });
+        if (isFinanceManager) entriesParams.set("scope", "tenant");
         if (selectedClientId) entriesParams.set("clientId", selectedClientId);
         if (selectedProjectId) entriesParams.set("projectId", selectedProjectId);
 
@@ -105,13 +122,17 @@ export class ReportController {
 
         const [resSummary, resClients, resProjects, resInvoices, resEntries, resMe] =
           await Promise.allSettled([
-            axios.get(`${API_URL}/api/reports/summary?${summaryParams.toString()}`, {
-              headers,
-              timeout: 4000,
-            }),
+            isFinanceManager
+              ? axios.get(`${API_URL}/api/reports/summary?${summaryParams.toString()}`, {
+                  headers,
+                  timeout: 4000,
+                })
+              : Promise.resolve({ data: { success: false } } as any),
             axios.get(`${API_URL}/api/clients`, { headers, timeout: 3000 }),
             axios.get(`${API_URL}/api/projects`, { headers, timeout: 3000 }),
-            axios.get(invoicesUrl, { headers, timeout: 3000 }),
+            isFinanceManager
+              ? axios.get(invoicesUrl, { headers, timeout: 3000 })
+              : Promise.resolve({ data: { success: false } } as any),
             axios.get(`${API_URL}/api/time-entries?${entriesParams.toString()}`, {
               headers,
               timeout: 3000,
@@ -127,7 +148,7 @@ export class ReportController {
           projects = resProjects.value.data.data || [];
         }
 
-        if (resInvoices.status === "fulfilled" && resInvoices.value.data?.success) {
+        if (isFinanceManager && resInvoices.status === "fulfilled" && resInvoices.value.data?.success) {
           invoices = (resInvoices.value.data.data || []).map((inv: any) => ({
             ...inv,
             durationSeconds:
@@ -145,7 +166,7 @@ export class ReportController {
           timeEntries = resEntries.value.data.data || [];
         }
 
-        if (resMe.status === "fulfilled" && resMe.value.data?.success) {
+        if (isFinanceManager && resMe.status === "fulfilled" && resMe.value.data?.success) {
           const userMe = resMe.value.data.data;
           if (userMe?.settings?.hourlyRateCents !== undefined) {
             hourlyRateCents = Number(userMe.settings.hourlyRateCents) || 0;
@@ -233,13 +254,15 @@ export class ReportController {
     timeEntries.forEach((entry) => {
       const dur = Number(entry.durationSeconds ?? entry.duration ?? 0);
       entriesTotalSeconds += dur;
-      if (entry.billable) {
+      if (entry.billable && isFinanceManager) {
         entriesBillableSeconds += dur;
         const entryAmount =
           entry.amountCents !== undefined && entry.amountCents !== null && Number(entry.amountCents) > 0
             ? Number(entry.amountCents)
             : calculateAmountCents(dur, hourlyRateCents);
         entriesAmountCents += entryAmount;
+      } else if (entry.billable) {
+        entriesBillableSeconds += dur;
       }
     });
 
@@ -266,11 +289,12 @@ export class ReportController {
 
         const dur = Number(entry.durationSeconds ?? entry.duration ?? 0);
         const billDur = entry.billable ? dur : 0;
-        const entryAmt = entry.billable
-          ? entry.amountCents !== undefined && entry.amountCents !== null && Number(entry.amountCents) > 0
-            ? Number(entry.amountCents)
-            : calculateAmountCents(dur, hourlyRateCents)
-          : 0;
+        const entryAmt =
+          entry.billable && isFinanceManager
+            ? entry.amountCents !== undefined && entry.amountCents !== null && Number(entry.amountCents) > 0
+              ? Number(entry.amountCents)
+              : calculateAmountCents(dur, hourlyRateCents)
+            : 0;
 
         const existing = groupMap.get(key);
         if (!existing) {
@@ -341,9 +365,10 @@ export class ReportController {
       summaryTotalValue !== null ? summaryTotalValue : Number((totalAmountCents / 100).toFixed(2));
 
     return res.render("reports/index", {
-      pageTitle: "TrackFlow - Relatórios & Faturas",
+      pageTitle: isFinanceManager ? "TrackFlow - Relatórios & Faturas" : "TrackFlow - Meus Relatórios",
       activeTab: "reports",
       user: req.user,
+      isFinanceManager,
       clients,
       projects,
       summaryProjects,
@@ -370,12 +395,14 @@ export class ReportController {
 
   static async exportCsv(req: Request, res: Response) {
     const token = req.cookies?.trackflow_session;
-    const { month, clientId, projectId } = req.query;
+    const { month, clientId, projectId, startDate, endDate } = req.query;
 
     const params = new URLSearchParams();
-    if (typeof month === "string") params.set("month", month);
-    if (typeof clientId === "string") params.set("clientId", clientId);
-    if (typeof projectId === "string") params.set("projectId", projectId);
+    if (typeof month === "string" && month) params.set("month", month);
+    if (typeof clientId === "string" && clientId) params.set("clientId", clientId);
+    if (typeof projectId === "string" && projectId) params.set("projectId", projectId);
+    if (typeof startDate === "string" && startDate) params.set("startDate", startDate);
+    if (typeof endDate === "string" && endDate) params.set("endDate", endDate);
 
     try {
       const response = await axios.get(`${API_URL}/api/reports/export/csv?${params.toString()}`, {

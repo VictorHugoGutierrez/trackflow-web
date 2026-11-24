@@ -8,6 +8,16 @@ import {
 
 const API_URL = process.env.API_URL || "http://localhost:3333";
 
+const brtDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Sao_Paulo",
+});
+
+function toBrtDateKey(value: Date | string): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (isNaN(date.getTime())) return "";
+  return brtDateFormatter.format(date);
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -69,13 +79,14 @@ export class DashboardController {
 
     let totalSecondsToday = 0;
     let billableSecondsToday = 0;
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
+    let entriesCountToday = 0;
+    const todayStr = toBrtDateKey(new Date());
 
     timeEntries.forEach((entry) => {
-      const isToday = entry.start && entry.start.startsWith(todayStr);
+      const isToday = Boolean(entry.start && toBrtDateKey(entry.start) === todayStr);
       const dur = entry.durationSeconds || 0;
       if (isToday) {
+        entriesCountToday += 1;
         totalSecondsToday += dur;
         if (entry.billable) billableSecondsToday += dur;
       }
@@ -97,7 +108,7 @@ export class DashboardController {
         totalSecondsToday,
         formattedTimeToday: formatDuration(totalSecondsToday),
         billablePercent,
-        entriesCountToday: timeEntries.filter((e) => e.start && e.start.startsWith(todayStr)).length,
+        entriesCountToday,
         projectsCount: projects.filter((p) => p.status !== "COMPLETED").length,
       },
       apiUrl: API_URL,
