@@ -1,0 +1,932 @@
+{
+  "id": "a1b2c3d4-1111-4000-8000-000000000001",
+  "version": "2.0",
+  "name": "TrackFlow Web",
+  "url": "http://localhost:3000",
+  "tests": [
+    {
+      "id": "b1000000-0000-4000-8000-000000000001",
+      "name": "1. Autenticacao - Protecao de rota, tema e login",
+      "commands": [
+        {
+          "id": "c1000000-0000-4000-8000-000000000001",
+          "comment": "Define janela desktop para garantir visibilidade dos controles",
+          "command": "setWindowSize",
+          "target": "1440x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000002",
+          "comment": "E-mail do usuario do workspace",
+          "command": "store",
+          "target": "hugovictorgutierrez@gmail.com",
+          "targets": [],
+          "value": "userEmail"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000003",
+          "comment": "Senha do usuario do workspace",
+          "command": "store",
+          "target": "123456",
+          "targets": [],
+          "value": "userPassword"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000004",
+          "comment": "Garante que nao ha sessao ativa",
+          "command": "open",
+          "target": "/logout",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000005",
+          "comment": "Limpa tema e estado local do navegador",
+          "command": "executeScript",
+          "target": "window.localStorage.removeItem('trackflow-theme'); window.localStorage.removeItem('trackflow-active-timer'); window.localStorage.removeItem('trackflow-pomodoro-mode');",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000006",
+          "comment": "Tenta acessar rota protegida sem autenticacao",
+          "command": "open",
+          "target": "/dashboard",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000007",
+          "comment": "Aguarda formulario de login apos redirecionamento",
+          "command": "waitForElementVisible",
+          "target": "id=form-login",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000008",
+          "comment": "Captura pathname atual",
+          "command": "executeScript",
+          "target": "return window.location.pathname;",
+          "targets": [],
+          "value": "currentPath"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000009",
+          "comment": "Confirma redirecionamento para /login",
+          "command": "assert",
+          "target": "currentPath",
+          "targets": [],
+          "value": "/login"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000101",
+          "comment": "Pausa visual apos redirecionamento para /login",
+          "command": "pause",
+          "target": "1200",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000010",
+          "comment": "Confirma tema inicial dark",
+          "command": "assertElementPresent",
+          "target": "css=html.dark",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000011",
+          "comment": "Alterna para tema light",
+          "command": "click",
+          "target": "id=theme-toggle-btn",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000012",
+          "comment": "Confirma remocao da classe dark",
+          "command": "assertElementNotPresent",
+          "target": "css=html.dark",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000102",
+          "comment": "Pausa visual para ver tema claro aplicado",
+          "command": "pause",
+          "target": "1200",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000013",
+          "comment": "Recarrega /login para validar persistencia do tema",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000014",
+          "comment": "Aguarda formulario de login apos recarregar",
+          "command": "waitForElementVisible",
+          "target": "id=form-login",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000015",
+          "comment": "Confirma que o tema light persistiu",
+          "command": "assertElementNotPresent",
+          "target": "css=html.dark",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000103",
+          "comment": "Pausa visual apos confirmar persistencia do tema no reload",
+          "command": "pause",
+          "target": "1000",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000016",
+          "comment": "Preenche e-mail valido",
+          "command": "type",
+          "target": "id=login-email",
+          "targets": [],
+          "value": "${userEmail}"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000017",
+          "comment": "Preenche senha incorreta",
+          "command": "type",
+          "target": "id=login-password",
+          "targets": [],
+          "value": "senha-incorreta"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000104",
+          "comment": "Pausa visual antes de enviar senha incorreta",
+          "command": "pause",
+          "target": "800",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000018",
+          "comment": "Envia login invalido",
+          "command": "click",
+          "target": "id=btn-login-submit",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000019",
+          "comment": "Aguarda caixa de erro ficar visivel",
+          "command": "waitForElementVisible",
+          "target": "id=error-box",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000020",
+          "comment": "Valida mensagem real de erro retornada pela TrackFlow API",
+          "command": "assertText",
+          "target": "id=error-box",
+          "targets": [],
+          "value": "E-mail ou senha inválidos."
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000105",
+          "comment": "Pausa visual para leitura da mensagem de erro",
+          "command": "pause",
+          "target": "1800",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000027",
+          "comment": "Limpa campos de e-mail e senha antes de preencher credenciais validas",
+          "command": "executeScript",
+          "target": "document.getElementById('login-email').value = ''; document.getElementById('login-password').value = '';",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000021",
+          "comment": "Preenche e-mail valido novamente",
+          "command": "type",
+          "target": "id=login-email",
+          "targets": [],
+          "value": "${userEmail}"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000022",
+          "comment": "Preenche senha valida",
+          "command": "type",
+          "target": "id=login-password",
+          "targets": [],
+          "value": "${userPassword}"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000106",
+          "comment": "Pausa visual antes de enviar login valido",
+          "command": "pause",
+          "target": "800",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000023",
+          "comment": "Envia login valido",
+          "command": "click",
+          "target": "id=btn-login-submit",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000024",
+          "comment": "Aguarda botao exclusivo de /dashboard para confirmar navegacao",
+          "command": "waitForElementVisible",
+          "target": "css=button[onclick=\"openManualModal()\"]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000025",
+          "comment": "Valida titulo da pagina do dashboard",
+          "command": "assertTitle",
+          "target": "TrackFlow - Painel Operacional",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000026",
+          "comment": "Valida cabecalho principal do dashboard",
+          "command": "assertText",
+          "target": "css=main h1 span",
+          "targets": [],
+          "value": "Visão Operacional do Dia"
+        },
+        {
+          "id": "c1000000-0000-4000-8000-000000000107",
+          "comment": "Pausa visual ao concluir login no /dashboard",
+          "command": "pause",
+          "target": "2000",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    },
+    {
+      "id": "b1000000-0000-4000-8000-000000000002",
+      "name": "2. Workspace - Pomodoro, cronometro global e apontamento manual",
+      "commands": [
+        {
+          "id": "c2000000-0000-4000-8000-000000000001",
+          "comment": "Define janela desktop para exibir o rotulo do Pomodoro e a sidebar",
+          "command": "setWindowSize",
+          "target": "1440x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000002",
+          "comment": "E-mail do usuario do workspace",
+          "command": "store",
+          "target": "hugovictorgutierrez@gmail.com",
+          "targets": [],
+          "value": "userEmail"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000003",
+          "comment": "Senha do usuario do workspace",
+          "command": "store",
+          "target": "123456",
+          "targets": [],
+          "value": "userPassword"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000004",
+          "comment": "Garante sessao limpa",
+          "command": "open",
+          "target": "/logout",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000005",
+          "comment": "Limpa localStorage de Pomodoro e timer ativo",
+          "command": "executeScript",
+          "target": "window.localStorage.removeItem('trackflow-pomodoro-mode'); window.localStorage.removeItem('trackflow-active-timer');",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000006",
+          "comment": "Abre pagina de login",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000007",
+          "comment": "Aguarda campo de e-mail",
+          "command": "waitForElementVisible",
+          "target": "id=login-email",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000008",
+          "comment": "Preenche e-mail",
+          "command": "type",
+          "target": "id=login-email",
+          "targets": [],
+          "value": "${userEmail}"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000009",
+          "comment": "Preenche senha",
+          "command": "type",
+          "target": "id=login-password",
+          "targets": [],
+          "value": "${userPassword}"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000101",
+          "comment": "Pausa visual antes de enviar login",
+          "command": "pause",
+          "target": "800",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000010",
+          "comment": "Faz login",
+          "command": "click",
+          "target": "id=btn-login-submit",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000011",
+          "comment": "Aguarda dashboard carregar",
+          "command": "waitForElementVisible",
+          "target": "id=global-pomodoro-toggle",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000012",
+          "comment": "Confirma modo inicial Normal",
+          "command": "assertText",
+          "target": "id=pomodoro-label",
+          "targets": [],
+          "value": "Normal"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000102",
+          "comment": "Pausa visual ao carregar /dashboard",
+          "command": "pause",
+          "target": "1200",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000013",
+          "comment": "Alterna para o modo Pomodoro",
+          "command": "click",
+          "target": "id=global-pomodoro-toggle",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000014",
+          "comment": "Confirma ativacao do modo Pomodoro independente da duracao configurada",
+          "command": "waitForElementPresent",
+          "target": "xpath=//*[@id='pomodoro-label' and starts-with(normalize-space(.), 'Pomodoro')]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000103",
+          "comment": "Pausa visual para ver modo Pomodoro ativo",
+          "command": "pause",
+          "target": "1200",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000015",
+          "comment": "Preenche descricao do cronometro global",
+          "command": "type",
+          "target": "id=global-timer-desc",
+          "targets": [],
+          "value": "Teste Selenium IDE - Cronometro"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000104",
+          "comment": "Pausa visual antes de iniciar cronometro",
+          "command": "pause",
+          "target": "1000",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000016",
+          "comment": "Inicia o cronometro global",
+          "command": "click",
+          "target": "id=global-timer-btn",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000017",
+          "comment": "Aguarda botao mudar para Parar",
+          "command": "waitForElementPresent",
+          "target": "xpath=//*[@id='global-timer-btn-text' and normalize-space(.)='Parar']",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000018",
+          "comment": "Aguarda 3 segundos com o cronometro contando na tela",
+          "command": "pause",
+          "target": "3000",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000019",
+          "comment": "Para o cronometro global",
+          "command": "click",
+          "target": "id=global-timer-btn",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000020",
+          "comment": "Aguarda recarregamento da pagina apos parar",
+          "command": "pause",
+          "target": "1000",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000021",
+          "comment": "Verifica apontamento salvo no feed",
+          "command": "waitForElementPresent",
+          "target": "xpath=//main//tbody//tr[contains(., 'Teste Selenium IDE - Cronometro')]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000022",
+          "comment": "Confirma que o botao voltou para Iniciar",
+          "command": "assertText",
+          "target": "id=global-timer-btn-text",
+          "targets": [],
+          "value": "Iniciar"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000105",
+          "comment": "Pausa visual para ver apontamento do cronometro no feed",
+          "command": "pause",
+          "target": "1800",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000023",
+          "comment": "Abre modal de apontamento manual",
+          "command": "click",
+          "target": "css=button[onclick=\"openManualModal()\"]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000024",
+          "comment": "Aguarda modal de apontamento manual visivel",
+          "command": "waitForElementVisible",
+          "target": "id=modal-manual",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000025",
+          "comment": "Preenche descricao do apontamento manual",
+          "command": "type",
+          "target": "css=#modal-manual input[name=\"description\"]",
+          "targets": [],
+          "value": "Teste Selenium IDE - Manual"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000106",
+          "comment": "Pausa visual para visualizar modal preenchido antes de salvar",
+          "command": "pause",
+          "target": "1200",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000026",
+          "comment": "Salva apontamento manual",
+          "command": "click",
+          "target": "css=#modal-manual button[type=\"submit\"]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000034",
+          "comment": "Aguarda fechamento/recarregamento apos salvar apontamento manual",
+          "command": "waitForElementNotVisible",
+          "target": "id=modal-manual",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000027",
+          "comment": "Confirma apontamento manual listado no feed",
+          "command": "waitForElementPresent",
+          "target": "xpath=//main//tbody//tr[contains(., 'Teste Selenium IDE - Manual')]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000107",
+          "comment": "Pausa visual para ver apontamento manual no feed",
+          "command": "pause",
+          "target": "1800",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000028",
+          "comment": "Navega para Clientes e Projetos pela sidebar",
+          "command": "click",
+          "target": "css=#tenant-sidebar a[href=\"/projects\"]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000029",
+          "comment": "Aguarda filtro exclusivo de /projects para confirmar navegacao",
+          "command": "waitForElementVisible",
+          "target": "id=search-projects",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000030",
+          "comment": "Valida cabecalho da pagina de projetos",
+          "command": "assertText",
+          "target": "css=main h1 span",
+          "targets": [],
+          "value": "Gestão de Projetos & Clientes"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000108",
+          "comment": "Pausa visual na tela de Clientes e Projetos",
+          "command": "pause",
+          "target": "1800",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000031",
+          "comment": "Navega para Configuracoes pela sidebar",
+          "command": "click",
+          "target": "css=#tenant-sidebar a[href=\"/settings\"]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000032",
+          "comment": "Aguarda campo exclusivo de /settings para confirmar navegacao",
+          "command": "waitForElementVisible",
+          "target": "id=settings-old-password",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000033",
+          "comment": "Valida titulo da pagina de Configuracoes",
+          "command": "assertTitle",
+          "target": "TrackFlow - Configurações",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c2000000-0000-4000-8000-000000000109",
+          "comment": "Pausa visual ao concluir navegacao em Configuracoes",
+          "command": "pause",
+          "target": "2000",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    },
+    {
+      "id": "b1000000-0000-4000-8000-000000000003",
+      "name": "3. Control Plane (Super Admin) - Acesso, navegacao e logout",
+      "commands": [
+        {
+          "id": "c3000000-0000-4000-8000-000000000001",
+          "comment": "Define janela desktop para exibir a sidebar do Control Plane",
+          "command": "setWindowSize",
+          "target": "1440x900",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000002",
+          "comment": "E-mail do Super Admin",
+          "command": "store",
+          "target": "admin@trackflow.com",
+          "targets": [],
+          "value": "adminEmail"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000003",
+          "comment": "Senha do Super Admin",
+          "command": "store",
+          "target": "Admin@123456",
+          "targets": [],
+          "value": "adminPassword"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000004",
+          "comment": "Garante sessao limpa",
+          "command": "open",
+          "target": "/logout",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000005",
+          "comment": "Abre pagina de login",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000006",
+          "comment": "Aguarda campo de e-mail",
+          "command": "waitForElementVisible",
+          "target": "id=login-email",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000007",
+          "comment": "Preenche e-mail do Super Admin",
+          "command": "type",
+          "target": "id=login-email",
+          "targets": [],
+          "value": "${adminEmail}"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000008",
+          "comment": "Preenche senha do Super Admin",
+          "command": "type",
+          "target": "id=login-password",
+          "targets": [],
+          "value": "${adminPassword}"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000101",
+          "comment": "Pausa visual antes de enviar login do Super Admin",
+          "command": "pause",
+          "target": "800",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000009",
+          "comment": "Faz login como Super Admin",
+          "command": "click",
+          "target": "id=btn-login-submit",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000010",
+          "comment": "Aguarda sidebar do Control Plane visivel",
+          "command": "waitForElementVisible",
+          "target": "css=#cp-sidebar",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000011",
+          "comment": "Valida titulo da Visao Geral do Control Plane",
+          "command": "assertTitle",
+          "target": "TrackFlow - Visão Geral do SaaS",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000012",
+          "comment": "Valida cabecalho da Visao Geral do Control Plane",
+          "command": "assertText",
+          "target": "css=main h1",
+          "targets": [],
+          "value": "Dashboard Operacional do SaaS"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000013",
+          "comment": "Verifica indicador de Tenants Ativos",
+          "command": "assertElementPresent",
+          "target": "id=metric-active-tenants",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000014",
+          "comment": "Verifica indicador de MRR Estimado",
+          "command": "assertElementPresent",
+          "target": "id=metric-mrr",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000102",
+          "comment": "Pausa visual na Visao Geral do Control Plane",
+          "command": "pause",
+          "target": "2000",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000015",
+          "comment": "Navega para Gestao de Tenants",
+          "command": "click",
+          "target": "css=#cp-sidebar a[href=\"/control-plane/tenants\"]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000016",
+          "comment": "Aguarda campo de busca de tenants visivel",
+          "command": "waitForElementVisible",
+          "target": "id=filter-search",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000017",
+          "comment": "Valida titulo da pagina de Gestao de Tenants",
+          "command": "assertTitle",
+          "target": "TrackFlow - Gestão de Tenants",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000018",
+          "comment": "Valida cabecalho da pagina de Gestao de Tenants",
+          "command": "assertText",
+          "target": "css=main h1",
+          "targets": [],
+          "value": "Gestão de Empresas (Tenants)"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000103",
+          "comment": "Pausa visual na Gestao de Tenants",
+          "command": "pause",
+          "target": "2000",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000019",
+          "comment": "Navega para Monitoramento e Logs",
+          "command": "click",
+          "target": "css=#cp-sidebar a[href=\"/control-plane/logs\"]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000020",
+          "comment": "Aguarda status do banco visivel",
+          "command": "waitForElementVisible",
+          "target": "id=badge-db-status",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000021",
+          "comment": "Valida titulo da pagina de Monitoramento e Logs",
+          "command": "assertTitle",
+          "target": "TrackFlow - Monitoramento e Logs",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000022",
+          "comment": "Valida cabecalho da pagina de Monitoramento e Logs",
+          "command": "assertText",
+          "target": "css=main h1",
+          "targets": [],
+          "value": "Monitoramento de Infraestrutura"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000104",
+          "comment": "Pausa visual em Monitoramento e Logs",
+          "command": "pause",
+          "target": "2000",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000023",
+          "comment": "Encerra sessao do Super Admin pela sidebar",
+          "command": "click",
+          "target": "css=#cp-sidebar a[href=\"/logout\"]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000024",
+          "comment": "Aguarda retorno ao formulario de login",
+          "command": "waitForElementVisible",
+          "target": "id=form-login",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000105",
+          "comment": "Pausa visual apos logout",
+          "command": "pause",
+          "target": "1200",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000025",
+          "comment": "Tenta acessar /control-plane apos logout",
+          "command": "open",
+          "target": "/control-plane",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000026",
+          "comment": "Aguarda redirecionamento para login",
+          "command": "waitForElementVisible",
+          "target": "id=form-login",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000027",
+          "comment": "Captura pathname apos bloqueio de rota",
+          "command": "executeScript",
+          "target": "return window.location.pathname;",
+          "targets": [],
+          "value": "afterLogoutPath"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000028",
+          "comment": "Confirma redirecionamento para /login",
+          "command": "assert",
+          "target": "afterLogoutPath",
+          "targets": [],
+          "value": "/login"
+        },
+        {
+          "id": "c3000000-0000-4000-8000-000000000106",
+          "comment": "Pausa visual ao confirmar bloqueio de acesso",
+          "command": "pause",
+          "target": "1500",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "d1000000-0000-4000-8000-000000000001",
+      "name": "Suite Principal - TrackFlow Web",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "b1000000-0000-4000-8000-000000000001",
+        "b1000000-0000-4000-8000-000000000002",
+        "b1000000-0000-4000-8000-000000000003"
+      ]
+    }
+  ],
+  "urls": [
+    "http://localhost:3000/"
+  ],
+  "plugins": []
+}
